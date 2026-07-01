@@ -28,7 +28,7 @@ function AppInner() {
           animation: 'spin 0.8s linear infinite',
         }} />
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-        <span style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>Loading SoundBridge...</span>
+        <span style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>Loading Spotify Jam Map...</span>
       </div>
     );
   }

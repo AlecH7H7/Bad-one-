@@ -50,5 +50,5 @@ setupSocketHandlers(io);
 
 const PORT = process.env.PORT || 3001;
 httpServer.listen(PORT, () => {
-  console.log(`SoundBridge server running on http://localhost:${PORT}`);
+  console.log(`Spotify Jam Map server running on http://localhost:${PORT}`);
 });

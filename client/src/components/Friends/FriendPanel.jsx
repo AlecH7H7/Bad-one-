@@ -45,7 +45,7 @@ export default function FriendPanel({ onSelectFriend }) {
           }}>
             <div style={{ fontSize: '36px', marginBottom: '12px' }}>🌍</div>
             <div style={{ fontSize: '12px', lineHeight: '1.6' }}>
-              No friends online yet. Share SoundBridge with friends to see them on the map!
+              No friends online yet. Share Spotify Jam Map with friends to see them on the map!
             </div>
           </div>
         ) : (

@@ -35,7 +35,7 @@ export default function Header() {
         }}>
           🎵
         </div>
-        <span style={{ fontWeight: '700', fontSize: '16px', letterSpacing: '-0.3px' }}>SoundBridge</span>
+        <span style={{ fontWeight: '700', fontSize: '16px', letterSpacing: '-0.3px' }}>Spotify Jam Map</span>
       </div>
 
       <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '12px' }}>

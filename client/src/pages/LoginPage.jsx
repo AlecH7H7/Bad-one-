@@ -43,7 +43,7 @@ export default function LoginPage() {
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
         }}>
-          SoundBridge
+          Spotify Jam Map
         </h1>
 
         <p style={{
