@@ -5,12 +5,15 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import dotenv from 'dotenv';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import authRoutes from './routes/auth.js';
 import spotifyRoutes from './routes/spotify.js';
 import usersRoutes from './routes/users.js';
 import { setupSocketHandlers } from './socket/handlers.js';
 
-dotenv.config();
+const __dirname = dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: resolve(__dirname, '../../.env') });
 
 const app = express();
 const httpServer = createServer(app);
