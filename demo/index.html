@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Spotify Jam Map — Feature Prototype</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#1DB954;--green2:#1ed760;--green-dim:rgba(29,185,84,.15);
+  --purple:#9b59f7;--purple-dim:rgba(155,89,247,.15);
+  --bg:#0a0a0f;--bg2:#111118;--card:#16161f;--hover:#1e1e2a;--active:#252535;
+  --border:#2a2a3a;--border2:#1e1e2a;
+  --t1:#ffffff;--t2:#a0a0b8;--t3:#555570;
+  --r:12px;--rs:8px;--rx:6px;
+  --shadow:0 8px 40px rgba(0,0,0,.6);
+}
+html,body{height:100%;background:var(--bg);color:var(--t1);font-family:'Inter',sans-serif;font-size:14px;overflow:hidden}
+button{cursor:pointer;border:none;font-family:inherit;background:transparent}
+
+/* LAYOUT */
+#app{display:flex;flex-direction:column;height:100vh}
+#header{height:56px;background:var(--bg2);border-bottom:1px solid var(--border2);display:flex;align-items:center;padding:0 20px;gap:16px;flex-shrink:0;z-index:10}
+#main{display:flex;flex:1;overflow:hidden}
+#sidebar{width:260px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border2);display:flex;flex-direction:column;overflow:hidden}
+#map-wrap{flex:1;position:relative}
+#map{height:100%;width:100%}
+#player{height:76px;background:var(--bg2);border-top:1px solid var(--border2);display:flex;align-items:center;padding:0 20px;gap:20px;flex-shrink:0}
+
+/* HEADER */
+.logo{display:flex;align-items:center;gap:8px}
+.logo-icon{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--green),var(--purple));display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 2px 8px rgba(29,185,84,.3)}
+.logo-name{font-weight:800;font-size:16px;letter-spacing:-.3px}
+.logo-badge{font-size:10px;background:var(--green);color:#000;padding:2px 7px;border-radius:50px;font-weight:700;margin-left:4px}
+.online-badge{display:flex;align-items:center;gap:6px;padding:4px 10px;background:var(--green-dim);border-radius:50px;border:1px solid rgba(29,185,84,.3);margin-left:auto}
+.online-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 2s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+.online-count{color:var(--green);font-size:12px;font-weight:700}
+.user-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#1DB954,#9b59f7);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;margin-left:12px}
+
+/* SIDEBAR */
+.sidebar-header{padding:14px 16px;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between}
+.sidebar-title{font-weight:700;font-size:13px}
+.count-badge{background:var(--green-dim);color:var(--green);font-size:11px;font-weight:700;padding:2px 8px;border-radius:50px;border:1px solid rgba(29,185,84,.3)}
+.friends-list{flex:1;overflow-y:auto;padding:8px}
+.friend-card{padding:10px;border-radius:var(--rs);cursor:pointer;transition:all .15s;margin-bottom:2px;display:flex;align-items:center;gap:10px;border:1px solid transparent}
+.friend-card:hover,.friend-card.active{background:var(--hover);border-color:var(--border)}
+.friend-avatar{position:relative;flex-shrink:0}
+.friend-avatar img{width:40px;height:40px;border-radius:50%;border:2px solid var(--green);object-fit:cover}
+.friend-avatar-fallback{width:40px;height:40px;border-radius:50%;border:2px solid var(--green);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:var(--green);background:var(--active)}
+.online-indicator{position:absolute;bottom:0;right:0;width:10px;height:10px;border-radius:50%;background:var(--green);border:2px solid var(--bg2)}
+.friend-info{flex:1;overflow:hidden}
+.friend-name{font-weight:600;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.friend-track{font-size:11px;color:var(--t3);display:flex;align-items:center;gap:4px;overflow:hidden}
+.play-dot{color:var(--green);font-size:9px;flex-shrink:0}
+.friend-track span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.friend-location{font-size:10px;color:var(--t3);margin-top:1px}
+.sidebar-hint{padding:12px 16px;border-top:1px solid var(--border2);color:var(--t3);font-size:11px;text-align:center}
+
+/* MAP */
+.leaflet-container{background:#0d0d18!important;font-family:'Inter',sans-serif!important}
+.leaflet-tile{filter:brightness(.45) saturate(.25) hue-rotate(200deg)}
+.leaflet-control-attribution{background:rgba(0,0,0,.6)!important;color:var(--t3)!important}
+.leaflet-control-zoom a{background:var(--card)!important;color:var(--t1)!important;border-color:var(--border)!important}
+
+.map-pin{position:relative;width:48px;height:48px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.map-pin-pulse{position:absolute;inset:-8px;border-radius:50%;background:rgba(29,185,84,.25);animation:map-pulse 2s ease-out infinite}
+.map-pin-ring{position:absolute;inset:-4px;border-radius:50%;border:2px solid rgba(29,185,84,.4)}
+.map-pin-avatar{width:48px;height:48px;border-radius:50%;border:2.5px solid var(--green);overflow:hidden;position:relative;z-index:1;background:var(--active);box-shadow:0 4px 16px rgba(0,0,0,.5)}
+.map-pin-avatar img{width:100%;height:100%;object-fit:cover}
+.map-pin-eq{position:absolute;bottom:-2px;right:-2px;width:18px;height:18px;border-radius:50%;background:var(--green);border:2px solid var(--bg);display:flex;align-items:center;justify-content:center;gap:1.5px;padding:3px;z-index:2}
+.eq-bar{width:2.5px;border-radius:1px;background:#000}
+.eq-bar:nth-child(1){animation:eq .5s ease-in-out infinite alternate}
+.eq-bar:nth-child(2){animation:eq .65s ease-in-out infinite alternate;animation-delay:.1s}
+.eq-bar:nth-child(3){animation:eq .8s ease-in-out infinite alternate;animation-delay:.2s}
+@keyframes eq{from{height:2px}to{height:9px}}
+@keyframes map-pulse{0%{transform:scale(.8);opacity:.8}100%{transform:scale(2.2);opacity:0}}
+
+/* MAP TOOLTIP */
+.map-tooltip{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:8px 12px;font-size:12px;font-weight:600;white-space:nowrap;box-shadow:var(--shadow);pointer-events:none}
+
+/* PLAYER */
+.player-track{width:220px;display:flex;align-items:center;gap:12px;overflow:hidden}
+.player-art{width:48px;height:48px;border-radius:8px;flex-shrink:0;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.player-art img{width:100%;height:100%;object-fit:cover}
+.player-meta{overflow:hidden}
+.player-name{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.player-artist{font-size:11px;color:var(--t3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.player-controls{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px}
+.ctrl-buttons{display:flex;align-items:center;gap:16px}
+.play-btn{width:36px;height:36px;border-radius:50%;background:var(--t1);color:#000;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .15s}
+.play-btn:hover{transform:scale(1.06);background:#fff}
+.skip-btn{color:var(--t2);font-size:18px;padding:4px;transition:color .15s}
+.skip-btn:hover{color:var(--t1)}
+.progress-row{width:100%;max-width:500px;display:flex;align-items:center;gap:8px}
+.time{font-size:10px;color:var(--t3);width:32px}
+.time.right{text-align:left}
+.progress-bar{flex:1;height:3px;background:var(--active);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:var(--green);border-radius:2px;transition:width .5s linear}
+.vol-wrap{width:130px;display:flex;align-items:center;gap:8px;justify-content:flex-end}
+.vol-icon{font-size:14px}
+input[type=range]{width:80px;accent-color:var(--green);cursor:pointer}
+
+/* FRIEND SHEET OVERLAY */
+#overlay{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0);pointer-events:none;transition:background .28s ease}
+#overlay.open{background:rgba(0,0,0,.55);pointer-events:all;backdrop-filter:blur(4px)}
+
+/* FRIEND SHEET */
+#sheet{
+  position:fixed;bottom:0;left:50%;
+  transform:translate(-50%,100%);
+  width:100%;max-width:480px;
+  z-index:600;
+  background:var(--card);
+  border-radius:20px 20px 0 0;
+  box-shadow:0 -8px 40px rgba(0,0,0,.6);
+  display:flex;flex-direction:column;
+  max-height:82vh;
+  transition:transform .32s cubic-bezier(.32,.72,0,1);
+}
+#sheet.open{transform:translate(-50%,0)}
+.sheet-handle{padding:12px 16px 0;display:flex;justify-content:center}
+.handle-bar{width:36px;height:4px;border-radius:2px;background:var(--border)}
+.sheet-header{padding:16px 20px 14px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--border2)}
+.sheet-avatar{position:relative}
+.sheet-avatar img{width:52px;height:52px;border-radius:50%;border:2.5px solid var(--green);object-fit:cover}
+.sheet-online{position:absolute;bottom:1px;right:1px;width:12px;height:12px;border-radius:50%;background:var(--green);border:2px solid var(--card)}
+.sheet-meta{flex:1}
+.sheet-name{font-weight:700;font-size:16px}
+.sheet-playing{font-size:12px;color:var(--t3);display:flex;align-items:center;gap:5px;margin-top:2px}
+.sheet-eq{display:flex;gap:1.5px;align-items:flex-end;height:12px}
+.sheet-eq span{width:2.5px;border-radius:1px;background:var(--green)}
+.sheet-eq span:nth-child(1){animation:eq .55s ease-in-out infinite alternate}
+.sheet-eq span:nth-child(2){animation:eq .7s ease-in-out infinite alternate;animation-delay:.12s}
+.sheet-eq span:nth-child(3){animation:eq .85s ease-in-out infinite alternate;animation-delay:.24s}
+.more-btn{color:var(--t3);font-size:22px;padding:6px;border-radius:8px;transition:all .15s}
+.more-btn:hover{background:var(--hover);color:var(--t1)}
+
+.sheet-search{padding:12px 16px 8px}
+.search-box{display:flex;align-items:center;gap:10px;background:var(--active);border:1px solid var(--border);border-radius:50px;padding:10px 16px;transition:border-color .15s}
+.search-box:focus-within{border-color:var(--t3)}
+.search-box input{flex:1;background:transparent;border:none;outline:none;color:var(--t1);font-size:14px;font-family:inherit}
+.search-box input::placeholder{color:var(--t3)}
+
+.sheet-hint{padding:24px 20px;text-align:center;color:var(--t3)}
+.hint-icon{font-size:36px;margin-bottom:10px}
+.hint-text{font-size:13px;line-height:1.6}
+.hint-text strong{color:var(--green)}
+
+/* TRACK ROWS */
+.tracks-list{overflow-y:auto;flex:1;padding-bottom:12px}
+.track-row{position:relative;overflow:hidden;user-select:none}
+.track-bg{position:absolute;right:0;top:0;bottom:0;background:rgba(29,185,84,.9);display:flex;align-items:center;justify-content:center;gap:6px;padding:0 20px;width:0;transition:width .2s,background .15s;overflow:hidden;white-space:nowrap}
+.track-bg .queue-icon{font-size:18px}
+.track-bg .queue-label{color:#fff;font-size:12px;font-weight:700}
+.track-inner{display:flex;align-items:center;gap:12px;padding:10px 20px;background:var(--card);cursor:grab;transition:background .1s}
+.track-inner:hover{background:var(--hover)}
+.track-art{width:46px;height:46px;border-radius:8px;overflow:hidden;flex-shrink:0}
+.track-art img{width:100%;height:100%;object-fit:cover}
+.track-info{flex:1;overflow:hidden}
+.track-name{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.track-sub{font-size:11px;color:var(--t3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px}
+.track-dur{font-size:10px;color:var(--t3);flex-shrink:0}
+.swipe-hint{display:flex;flex-direction:column;align-items:center;color:var(--t3);font-size:9px;flex-shrink:0;margin-left:8px;opacity:.5}
+.swipe-hint span:first-child{font-size:12px}
+
+/* QUEUED TOAST */
+.queued-toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--green);color:#000;font-weight:700;font-size:13px;padding:10px 20px;border-radius:50px;opacity:0;transition:all .3s;pointer-events:none;z-index:900;white-space:nowrap}
+.queued-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* BLOCK MODAL */
+#block-modal{position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:24px}
+#block-modal.open{display:flex}
+.block-box{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px 24px;max-width:340px;width:100%;box-shadow:var(--shadow);animation:pop .25s cubic-bezier(.175,.885,.32,1.275)}
+@keyframes pop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+.block-title{text-align:center;margin-bottom:20px}
+.block-emoji{font-size:36px;display:block;margin-bottom:10px}
+.block-title h3{font-size:17px;font-weight:700;margin-bottom:6px}
+.block-title p{color:var(--t2);font-size:13px;line-height:1.5}
+.block-options{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.block-opt{padding:14px 16px;border-radius:12px;background:var(--active);border:1px solid var(--border);display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .15s;text-align:left;width:100%}
+.block-opt:hover{background:var(--hover)}
+.block-opt.selected{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.5);color:#ef4444}
+.block-opt-icon{font-size:20px}
+.block-opt-info .block-opt-label{font-weight:600;font-size:14px}
+.block-opt-info .block-opt-sub{font-size:11px;color:var(--t3);margin-top:1px}
+.block-check{margin-left:auto;font-size:16px;display:none}
+.block-opt.selected .block-check{display:block}
+.block-actions{display:flex;gap:10px}
+.btn-cancel{flex:1;padding:13px;border-radius:12px;background:var(--active);border:1px solid var(--border);color:var(--t2);font-weight:600;font-size:14px;cursor:pointer;transition:background .15s}
+.btn-cancel:hover{background:var(--hover)}
+.btn-block{flex:1;padding:13px;border-radius:12px;background:#ef4444;color:#fff;font-weight:700;font-size:14px;cursor:pointer;transition:all .15s}
+.btn-block:hover{background:#dc2626}
+.btn-block:disabled{background:var(--active);color:var(--t3);cursor:not-allowed}
+
+/* LISTEN TOGETHER MODAL */
+#lt-modal{position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:24px}
+#lt-modal.open{display:flex}
+.lt-box{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px 24px;max-width:340px;width:100%;box-shadow:var(--shadow);animation:pop .25s cubic-bezier(.175,.885,.32,1.275);text-align:center}
+.lt-emoji{font-size:44px;margin-bottom:12px}
+.lt-name{font-size:17px;font-weight:700;margin-bottom:6px}
+.lt-sub{color:var(--t2);font-size:13px;margin-bottom:16px}
+.lt-track{background:var(--active);border-radius:var(--rs);padding:12px;display:flex;gap:12px;align-items:center;margin-bottom:20px;text-align:left}
+.lt-track img{width:44px;height:44px;border-radius:6px}
+.lt-track-name{font-size:13px;font-weight:600}
+.lt-track-artist{font-size:11px;color:var(--t3)}
+.lt-actions{display:flex;gap:10px}
+.btn-decline{flex:1;padding:13px;border-radius:12px;background:var(--active);border:1px solid var(--border);color:var(--t2);font-weight:600;font-size:14px;cursor:pointer}
+.btn-join{flex:1;padding:13px;border-radius:12px;background:var(--green);color:#000;font-weight:700;font-size:14px;cursor:pointer;transition:background .15s}
+.btn-join:hover{background:var(--green2)}
+
+/* NOTIFICATION */
+.notif{position:fixed;top:68px;right:16px;z-index:950;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;max-width:300px;display:flex;align-items:flex-start;gap:10px;box-shadow:var(--shadow);animation:slide-in .25s ease-out;pointer-events:none;opacity:0;transition:opacity .3s}
+.notif.show{opacity:1}
+@keyframes slide-in{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+.notif-icon{font-size:18px;flex-shrink:0}
+.notif-msg{font-size:13px;line-height:1.4;color:var(--t2)}
+
+/* FEATURE LABELS ON MAP */
+.feature-label{background:rgba(0,0,0,.8);border:1px solid var(--border);border-radius:var(--rx);padding:4px 10px;font-size:11px;font-weight:600;color:var(--t2);white-space:nowrap}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <header id="header">
+    <div class="logo">
+      <div class="logo-icon">🎵</div>
+      <span class="logo-name">Spotify Jam Map</span>
+      <span class="logo-badge">CONCEPT</span>
+    </div>
+    <div class="online-badge">
+      <div class="online-dot"></div>
+      <span class="online-count">5 friends online</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-left:12px">
+      <div class="user-avatar">A</div>
+      <span style="font-size:13px;color:var(--t2)">Alec</span>
+    </div>
+  </header>
+
+  <div id="main">
+    <div id="sidebar">
+      <div class="sidebar-header">
+        <span class="sidebar-title">Friends Online</span>
+        <span class="count-badge">5</span>
+      </div>
+      <div class="friends-list" id="friends-list"></div>
+      <div class="sidebar-hint">Tap a friend or their pin on the map</div>
+    </div>
+    <div id="map-wrap">
+      <div id="map"></div>
+    </div>
+  </div>
+
+  <div id="player">
+    <div class="player-track">
+      <div class="player-art"><img src="https://i.scdn.co/image/ab67616d0000b273b1c4b76e23414c9f20242268" onerror="this.style.background='#252535';this.src=''"/></div>
+      <div class="player-meta">
+        <div class="player-name">Blinding Lights</div>
+        <div class="player-artist">The Weeknd</div>
+      </div>
+    </div>
+    <div class="player-controls">
+      <div class="ctrl-buttons">
+        <button class="skip-btn">⏮</button>
+        <button class="play-btn" id="play-btn">▶</button>
+        <button class="skip-btn">⏭</button>
+      </div>
+      <div class="progress-row">
+        <span class="time" id="cur-time">1:23</span>
+        <div class="progress-bar"><div class="progress-fill" id="progress" style="width:35%"></div></div>
+        <span class="time right">3:59</span>
+      </div>
+    </div>
+    <div class="vol-wrap">
+      <span class="vol-icon">🔊</span>
+      <input type="range" min="0" max="100" value="75"/>
+    </div>
+  </div>
+</div>
+
+<!-- OVERLAY -->
+<div id="overlay" onclick="closeSheet()"></div>
+
+<!-- FRIEND SHEET -->
+<div id="sheet">
+  <div class="sheet-handle"><div class="handle-bar"></div></div>
+  <div class="sheet-header">
+    <div class="sheet-avatar">
+      <img id="sheet-img" src="" alt=""/>
+      <div class="sheet-online"></div>
+    </div>
+    <div class="sheet-meta">
+      <div class="sheet-name" id="sheet-name"></div>
+      <div class="sheet-playing" id="sheet-playing">
+        <div class="sheet-eq"><span></span><span></span><span></span></div>
+        <span id="sheet-track"></span>
+      </div>
+    </div>
+    <button class="more-btn" onclick="openBlock()">⋯</button>
+  </div>
+  <div class="sheet-search">
+    <div class="search-box">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#555570" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" placeholder="Search a song to send..." id="search-input" oninput="filterTracks(this.value)"/>
+    </div>
+  </div>
+  <div style="padding:0 16px 8px;color:var(--t3);font-size:11px;display:flex;align-items:center;gap:6px">
+    <strong style="color:var(--green)">← Swipe left</strong> on any song to add it to their queue
+  </div>
+  <div class="tracks-list" id="tracks-list"></div>
+  <div class="sheet-hint" id="sheet-hint" style="display:none">
+    <div class="hint-icon">🎵</div>
+    <div class="hint-text">Search any song from Spotify's 80M+ catalog.<br/><strong>Swipe left</strong> to queue it for them.</div>
+  </div>
+</div>
+
+<!-- BLOCK MODAL -->
+<div id="block-modal">
+  <div class="block-box">
+    <div class="block-title">
+      <span class="block-emoji">🚫</span>
+      <h3>Block <span id="block-name"></span>?</h3>
+      <p>They won't see your location or add songs to your queue. Choose how long:</p>
+    </div>
+    <div class="block-options">
+      <button class="block-opt" onclick="selectBlock(this,'2h')">
+        <span class="block-opt-icon">⏱</span>
+        <div class="block-opt-info"><div class="block-opt-label">2 hours</div><div class="block-opt-sub">Auto-unblocks after 2 hours</div></div>
+        <span class="block-check">✓</span>
+      </button>
+      <button class="block-opt" onclick="selectBlock(this,'24h')">
+        <span class="block-opt-icon">🌙</span>
+        <div class="block-opt-info"><div class="block-opt-label">24 hours</div><div class="block-opt-sub">Auto-unblocks after 24 hours</div></div>
+        <span class="block-check">✓</span>
+      </button>
+      <button class="block-opt" onclick="selectBlock(this,'7d')">
+        <span class="block-opt-icon">📅</span>
+        <div class="block-opt-info"><div class="block-opt-label">7 days</div><div class="block-opt-sub">Auto-unblocks after 7 days</div></div>
+        <span class="block-check">✓</span>
+      </button>
+      <button class="block-opt" onclick="selectBlock(this,'forever')">
+        <span class="block-opt-icon">🚫</span>
+        <div class="block-opt-info"><div class="block-opt-label">Forever</div><div class="block-opt-sub">Until you manually unblock them</div></div>
+        <span class="block-check">✓</span>
+      </button>
+    </div>
+    <div class="block-actions">
+      <button class="btn-cancel" onclick="closeBlock()">Cancel</button>
+      <button class="btn-block" id="block-btn" disabled onclick="doBlock()">Block</button>
+    </div>
+  </div>
+</div>
+
+<!-- LISTEN TOGETHER MODAL -->
+<div id="lt-modal">
+  <div class="lt-box">
+    <div class="lt-emoji">🎧</div>
+    <div class="lt-name" id="lt-name"></div>
+    <div class="lt-sub">wants to listen together</div>
+    <div class="lt-track">
+      <img src="https://i.scdn.co/image/ab67616d0000b273b1c4b76e23414c9f20242268" onerror="this.style.background='#252535'"/>
+      <div><div class="lt-track-name">Blinding Lights</div><div class="lt-track-artist">The Weeknd</div></div>
+    </div>
+    <div class="lt-actions">
+      <button class="btn-decline" onclick="document.getElementById('lt-modal').classList.remove('open')">Decline</button>
+      <button class="btn-join" onclick="joinTogether()">Join 🎵</button>
+    </div>
+  </div>
+</div>
+
+<!-- QUEUED TOAST -->
+<div class="queued-toast" id="toast"></div>
+
+<script>
+const FRIENDS = [
+  { id:1, name:'Max', city:'New York, USA', lat:40.71, lng:-74.00, color:'#1DB954', track:'Blinding Lights', artist:'The Weeknd', art:'https://i.scdn.co/image/ab67616d0000b273b1c4b76e23414c9f20242268', initials:'M' },
+  { id:2, name:'Sofia', city:'Barcelona, Spain', lat:41.38, lng:2.17, color:'#9b59f7', track:'Bad Guy', artist:'Billie Eilish', art:'https://i.scdn.co/image/ab67616d0000b2734ae1c4c5c45aabe565499163', initials:'S' },
+  { id:3, name:'Jake', city:'London, UK', lat:51.50, lng:-.12, color:'#1DB954', track:'As It Was', artist:'Harry Styles', art:'https://i.scdn.co/image/ab67616d0000b2732e8ed79e177ff6011076f5f0', initials:'J' },
+  { id:4, name:'Mia', city:'Tokyo, Japan', lat:35.68, lng:139.69, color:'#9b59f7', track:'Seven', artist:'Jung Kook', art:'https://i.scdn.co/image/ab67616d0000b27369026e59440706b3a7d0fa4a', initials:'M' },
+  { id:5, name:'Carlos', city:'São Paulo, Brazil', lat:-23.55, lng:-46.63, color:'#1DB954', track:'Flowers', artist:'Miley Cyrus', art:'https://i.scdn.co/image/ab67616d0000b27322a6e7f949361d8e7e7e7e7e', initials:'C' },
+];
+
+const SONGS = [
+  { name:'Blinding Lights', artist:'The Weeknd', album:'After Hours', dur:'3:59', art:'https://i.scdn.co/image/ab67616d0000b273b1c4b76e23414c9f20242268' },
+  { name:'Bad Guy', artist:'Billie Eilish', album:'WHEN WE ALL FALL ASLEEP…', dur:'3:14', art:'https://i.scdn.co/image/ab67616d0000b2734ae1c4c5c45aabe565499163' },
+  { name:'As It Was', artist:'Harry Styles', album:'Harry\'s House', dur:'2:37', art:'https://i.scdn.co/image/ab67616d0000b2732e8ed79e177ff6011076f5f0' },
+  { name:'Flowers', artist:'Miley Cyrus', album:'Endless Summer Vacation', dur:'3:21', art:'https://i.scdn.co/image/ab67616d0000b273b8aa2c63cff1a92cd23f5cc2' },
+  { name:'Anti-Hero', artist:'Taylor Swift', album:'Midnights', dur:'3:20', art:'https://i.scdn.co/image/ab67616d0000b273bb54dde68cd23e2a268ae0f5' },
+  { name:'Levitating', artist:'Dua Lipa', album:'Future Nostalgia', dur:'3:23', art:'https://i.scdn.co/image/ab67616d0000b2734bc66095f8a70bc4e6593f4f' },
+  { name:'Stay', artist:'The Kid LAROI & Justin Bieber', album:'F*CK LOVE 3', dur:'2:21', art:'https://i.scdn.co/image/ab67616d0000b27344b40b744e8d0e2f1dda4b48' },
+  { name:'Heat Waves', artist:'Glass Animals', album:'Dreamland', dur:'3:59', art:'https://i.scdn.co/image/ab67616d0000b273712b1a8f2e5680c5d6d9a931' },
+  { name:'Watermelon Sugar', artist:'Harry Styles', album:'Fine Line', dur:'2:54', art:'https://i.scdn.co/image/ab67616d0000b2732e8ed79e177ff6011076f5f0' },
+  { name:'Peaches', artist:'Justin Bieber', album:'Justice', dur:'3:18', art:'https://i.scdn.co/image/ab67616d0000b2739478c87599550dd73bfa7e02' },
+];
+
+let currentFriend = null;
+let playing = false;
+let progressVal = 35;
+let progressTimer = null;
+let selectedBlock = null;
+
+// --- SIDEBAR ---
+function buildSidebar() {
+  const list = document.getElementById('friends-list');
+  list.innerHTML = FRIENDS.map(f => `
+    <div class="friend-card" id="fc-${f.id}" onclick="openSheet(${f.id})">
+      <div class="friend-avatar">
+        <div class="friend-avatar-fallback" style="border-color:${f.color};color:${f.color}">${f.initials}</div>
+        <div class="online-indicator"></div>
+      </div>
+      <div class="friend-info">
+        <div class="friend-name">${f.name}</div>
+        <div class="friend-track"><span class="play-dot">▶</span><span>${f.track} — ${f.artist}</span></div>
+        <div class="friend-location">📍 ${f.city}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// --- MAP ---
+let map;
+function initMap() {
+  map = L.map('map', { zoomControl:true, attributionControl:false }).setView([25,10], 2);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+  FRIENDS.forEach(f => {
+    const el = document.createElement('div');
+    el.className = 'map-pin';
+    el.innerHTML = `
+      <div class="map-pin-pulse"></div>
+      <div class="map-pin-ring"></div>
+      <div class="map-pin-avatar" style="border-color:${f.color}">
+        <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:${f.color};background:#252535">${f.initials}</div>
+      </div>
+      <div class="map-pin-eq">
+        <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
+      </div>
+    `;
+    el.title = f.name;
+    el.style.cursor = 'pointer';
+    el.onclick = () => openSheet(f.id);
+
+    const icon = L.divIcon({ html: el, className:'', iconSize:[48,48], iconAnchor:[24,24] });
+    const marker = L.marker([f.lat, f.lng], { icon }).addTo(map);
+    marker.bindTooltip(`<div class="map-tooltip">${f.name} · ${f.track}</div>`, { permanent:false, direction:'top', offset:[0,-28], className:'leaflet-custom-tooltip' });
+  });
+
+  // You pin
+  const youEl = document.createElement('div');
+  youEl.className = 'map-pin';
+  youEl.innerHTML = `
+    <div class="map-pin-pulse" style="background:rgba(155,89,247,.25)"></div>
+    <div class="map-pin-ring" style="border-color:rgba(155,89,247,.4)"></div>
+    <div class="map-pin-avatar" style="border-color:#9b59f7">
+      <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#9b59f7;background:#252535">A</div>
+    </div>
+  `;
+  const youIcon = L.divIcon({ html: youEl, className:'', iconSize:[48,48], iconAnchor:[24,24] });
+  L.marker([41.38, 2.17], { icon: youIcon }).addTo(map).bindTooltip('<div class="map-tooltip">You</div>', { permanent:false, direction:'top', offset:[0,-28] });
+}
+
+// --- SHEET ---
+function openSheet(id) {
+  const f = FRIENDS.find(x => x.id === id);
+  currentFriend = f;
+  document.getElementById('sheet-img').src = f.art;
+  document.getElementById('sheet-img').onerror = function(){ this.style.display='none'; };
+  document.getElementById('sheet-name').textContent = f.name;
+  document.getElementById('sheet-track').textContent = `${f.track} — ${f.artist}`;
+  document.getElementById('search-input').value = '';
+  document.getElementById('block-name').textContent = f.name;
+  renderTracks(SONGS);
+  document.getElementById('sheet').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+  document.querySelectorAll('.friend-card').forEach(c => c.classList.remove('active'));
+  document.getElementById('fc-'+id)?.classList.add('active');
+  map?.flyTo([f.lat, f.lng], 5, { animate:true, duration:1.2 });
+}
+
+function closeSheet() {
+  document.getElementById('sheet').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+  document.querySelectorAll('.friend-card').forEach(c => c.classList.remove('active'));
+  currentFriend = null;
+}
+
+// --- TRACKS ---
+function renderTracks(songs) {
+  const list = document.getElementById('tracks-list');
+  list.innerHTML = songs.map((s,i) => `
+    <div class="track-row" id="tr-${i}">
+      <div class="track-bg" id="bg-${i}">
+        <span class="queue-icon">➕</span>
+        <span class="queue-label">Queue</span>
+      </div>
+      <div class="track-inner" id="ti-${i}"
+        onmousedown="startSwipe(event,${i})"
+        onmousemove="doSwipe(event,${i})"
+        onmouseup="endSwipe(event,${i})"
+        onmouseleave="endSwipe(event,${i})"
+        ontouchstart="startSwipe(event,${i})"
+        ontouchmove="doSwipe(event,${i})"
+        ontouchend="endSwipe(event,${i})"
+      >
+        <div class="track-art"><img src="${s.art}" onerror="this.style.background='#252535'" /></div>
+        <div class="track-info">
+          <div class="track-name">${s.name}</div>
+          <div class="track-sub">${s.artist} · ${s.album}</div>
+        </div>
+        <span class="track-dur">${s.dur}</span>
+        <div class="swipe-hint"><span>←</span><span>swipe</span></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterTracks(q) {
+  if (!q.trim()) { renderTracks(SONGS); return; }
+  const filtered = SONGS.filter(s =>
+    s.name.toLowerCase().includes(q.toLowerCase()) ||
+    s.artist.toLowerCase().includes(q.toLowerCase())
+  );
+  renderTracks(filtered);
+}
+
+// --- SWIPE ---
+const swipeState = {};
+const THRESHOLD = 110;
+
+function startSwipe(e, i) {
+  const x = e.clientX ?? e.touches?.[0]?.clientX;
+  swipeState[i] = { startX: x, offset: 0, active: true };
+}
+
+function doSwipe(e, i) {
+  if (!swipeState[i]?.active) return;
+  const x = e.clientX ?? e.touches?.[0]?.clientX;
+  const delta = Math.min(0, x - swipeState[i].startX);
+  swipeState[i].offset = delta;
+  const el = document.getElementById('ti-'+i);
+  const bg = document.getElementById('bg-'+i);
+  if (!el || !bg) return;
+  const pct = Math.min(Math.abs(delta) / THRESHOLD, 1);
+  el.style.transform = `translateX(${delta}px)`;
+  el.style.transition = 'none';
+  const w = Math.max(Math.abs(delta), 0);
+  bg.style.width = w + 'px';
+  bg.style.background = `rgba(29,185,84,${0.4 + pct * 0.6})`;
+}
+
+function endSwipe(e, i) {
+  if (!swipeState[i]?.active) return;
+  swipeState[i].active = false;
+  const offset = swipeState[i].offset;
+  const el = document.getElementById('ti-'+i);
+  const bg = document.getElementById('bg-'+i);
+  if (!el || !bg) return;
+  el.style.transition = 'transform .25s cubic-bezier(.32,.72,0,1)';
+  bg.style.transition = 'width .25s ease, background .2s';
+
+  if (offset <= -THRESHOLD) {
+    el.style.transform = `translateX(-${THRESHOLD*1.5}px)`;
+    setTimeout(() => {
+      el.style.transform = 'translateX(0)';
+      bg.style.width = '0';
+      bg.style.background = 'rgba(29,185,84,.9)';
+      showToast();
+    }, 180);
+  } else {
+    el.style.transform = 'translateX(0)';
+    bg.style.width = '0';
+  }
+  swipeState[i] = {};
+}
+
+function showToast() {
+  const name = currentFriend?.name || 'their';
+  const t = document.getElementById('toast');
+  t.textContent = `🎵 Song added to ${name}'s queue!`;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// --- BLOCK ---
+function openBlock() {
+  closeSheet();
+  document.querySelectorAll('.block-opt').forEach(b => b.classList.remove('selected'));
+  document.getElementById('block-btn').disabled = true;
+  selectedBlock = null;
+  document.getElementById('block-modal').classList.add('open');
+}
+
+function closeBlock() {
+  document.getElementById('block-modal').classList.remove('open');
+}
+
+function selectBlock(el, val) {
+  document.querySelectorAll('.block-opt').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedBlock = val;
+  document.getElementById('block-btn').disabled = false;
+}
+
+function doBlock() {
+  const labels = { '2h':'2 hours', '24h':'24 hours', '7d':'7 days', 'forever':'forever' };
+  closeBlock();
+  showNotif('🚫', `Blocked ${currentFriend?.name || 'user'} for ${labels[selectedBlock]}`);
+}
+
+// --- LISTEN TOGETHER ---
+function showListenTogetherInvite() {
+  document.getElementById('lt-name').textContent = 'Max';
+  document.getElementById('lt-modal').classList.add('open');
+}
+
+function joinTogether() {
+  document.getElementById('lt-modal').classList.remove('open');
+  showNotif('🎧', 'Now listening together with Max!');
+}
+
+// --- NOTIFICATIONS ---
+function showNotif(icon, msg) {
+  const el = document.createElement('div');
+  el.className = 'notif';
+  el.innerHTML = `<span class="notif-icon">${icon}</span><span class="notif-msg">${msg}</span>`;
+  document.body.appendChild(el);
+  setTimeout(() => el.classList.add('show'), 10);
+  setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 300); }, 3500);
+}
+
+// --- PLAYER ---
+let isPlaying = false;
+document.getElementById('play-btn').onclick = function() {
+  isPlaying = !isPlaying;
+  this.textContent = isPlaying ? '⏸' : '▶';
+  if (isPlaying) startProgress(); else stopProgress();
+};
+
+function startProgress() {
+  progressTimer = setInterval(() => {
+    progressVal = Math.min(progressVal + 0.4, 100);
+    document.getElementById('progress').style.width = progressVal + '%';
+    const total = 239;
+    const cur = Math.floor(total * progressVal / 100);
+    const m = Math.floor(cur/60);
+    const s = String(cur%60).padStart(2,'0');
+    document.getElementById('cur-time').textContent = `${m}:${s}`;
+    if (progressVal >= 100) stopProgress();
+  }, 1000);
+}
+
+function stopProgress() {
+  clearInterval(progressTimer);
+}
+
+// --- INIT ---
+buildSidebar();
+initMap();
+
+// Demo: auto show listen-together after 4s
+setTimeout(showListenTogetherInvite, 4000);
+</script>
+</body>
+</html>
