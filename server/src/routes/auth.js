@@ -6,7 +6,7 @@ const router = Router();
 
 const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
-const REDIRECT_URI = process.env.REDIRECT_URI || 'http://localhost:3001/api/auth/callback';
+const REDIRECT_URI = process.env.REDIRECT_URI || 'http://127.0.0.1:3001/api/auth/callback';
 const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
 
 const SCOPES = [
