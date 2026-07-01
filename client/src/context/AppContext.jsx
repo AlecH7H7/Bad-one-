@@ -9,10 +9,10 @@ const initialState = {
   loading: true,
   onlineFriends: [],
   currentTrack: null,
-  isPlaying: false,
   notifications: [],
   listenTogetherInvite: null,
   chatMessages: {},
+  blockedUsers: [],
   socket: null,
 };
 
@@ -22,10 +22,10 @@ function reducer(state, action) {
       return { ...state, user: action.payload, loading: false };
     case 'SET_LOADING':
       return { ...state, loading: action.payload };
-    case 'SET_FRIENDS':
-      return { ...state, onlineFriends: action.payload };
-    case 'ADD_FRIEND':
+    case 'ADD_FRIEND': {
+      if (state.onlineFriends.some((f) => f.id === action.payload.id)) return state;
       return { ...state, onlineFriends: [...state.onlineFriends, action.payload] };
+    }
     case 'REMOVE_FRIEND':
       return { ...state, onlineFriends: state.onlineFriends.filter((f) => f.id !== action.payload) };
     case 'UPDATE_FRIEND_TRACK':
@@ -46,15 +46,13 @@ function reducer(state, action) {
       };
     case 'SET_CURRENT_TRACK':
       return { ...state, currentTrack: action.payload };
-    case 'SET_PLAYING':
-      return { ...state, isPlaying: action.payload };
     case 'ADD_NOTIFICATION':
-      return { ...state, notifications: [action.payload, ...state.notifications].slice(0, 10) };
+      return { ...state, notifications: [action.payload, ...state.notifications].slice(0, 8) };
     case 'REMOVE_NOTIFICATION':
       return { ...state, notifications: state.notifications.filter((n) => n.id !== action.payload) };
     case 'SET_LISTEN_TOGETHER_INVITE':
       return { ...state, listenTogetherInvite: action.payload };
-    case 'ADD_CHAT_MESSAGE':
+    case 'ADD_CHAT_MESSAGE': {
       const { userId, message } = action.payload;
       return {
         ...state,
@@ -63,6 +61,15 @@ function reducer(state, action) {
           [userId]: [...(state.chatMessages[userId] || []), message],
         },
       };
+    }
+    case 'BLOCK_USER':
+      return {
+        ...state,
+        blockedUsers: [...state.blockedUsers, action.payload],
+        onlineFriends: state.onlineFriends.filter((f) => f.id !== action.payload),
+      };
+    case 'UNBLOCK_USER':
+      return { ...state, blockedUsers: state.blockedUsers.filter((id) => id !== action.payload) };
     case 'SET_SOCKET':
       return { ...state, socket: action.payload };
     default:
@@ -94,21 +101,16 @@ export function AppProvider({ children }) {
     socketRef.current = socket;
     dispatch({ type: 'SET_SOCKET', payload: socket });
 
+    const joinWithLocation = (location) => {
+      socket.emit('user:join', { user: state.user, location });
+      if (location) socket.emit('location:update', { location });
+    };
+
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const location = {
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-        };
-        socket.emit('user:join', { user: state.user, location });
-        socket.emit('location:update', { location });
-      },
-      () => {
-        socket.emit('user:join', { user: state.user, location: null });
-      }
+      (pos) => joinWithLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => joinWithLocation(null)
     );
 
-    socket.on('users:list', (users) => dispatch({ type: 'SET_FRIENDS', payload: users }));
     socket.on('user:online', (user) => dispatch({ type: 'ADD_FRIEND', payload: user }));
     socket.on('user:offline', ({ userId }) => dispatch({ type: 'REMOVE_FRIEND', payload: userId }));
     socket.on('track:updated', (data) => dispatch({ type: 'UPDATE_FRIEND_TRACK', payload: data }));
@@ -117,13 +119,7 @@ export function AppProvider({ children }) {
     socket.on('queue:track-added', ({ track, from }) => {
       dispatch({
         type: 'ADD_NOTIFICATION',
-        payload: {
-          id: ++notifId,
-          type: 'queue',
-          message: `${from.displayName} added "${track.name}" to your queue!`,
-          track,
-          from,
-        },
+        payload: { id: ++notifId, type: 'queue', message: `${from.displayName} added "${track.name}" to your queue!`, track, from },
       });
     });
 
@@ -134,37 +130,24 @@ export function AppProvider({ children }) {
     socket.on('listen-together:accepted', ({ user }) => {
       dispatch({
         type: 'ADD_NOTIFICATION',
-        payload: {
-          id: ++notifId,
-          type: 'listen-together',
-          message: `${user.displayName} joined your listening session!`,
-          user,
-        },
+        payload: { id: ++notifId, type: 'listen-together', message: `${user.displayName} joined your listening session!` },
       });
     });
 
     socket.on('chat:received', ({ from, message, timestamp }) => {
-      dispatch({
-        type: 'ADD_CHAT_MESSAGE',
-        payload: { userId: from.id, message: { text: message, from: from.id, timestamp } },
-      });
+      dispatch({ type: 'ADD_CHAT_MESSAGE', payload: { userId: from.id, message: { text: message, from: from.id, timestamp } } });
       dispatch({
         type: 'ADD_NOTIFICATION',
-        payload: {
-          id: ++notifId,
-          type: 'chat',
-          message: `${from.displayName}: ${message}`,
-          from,
-        },
+        payload: { id: ++notifId, type: 'chat', message: `${from.displayName}: ${message}`, from },
       });
     });
 
     return () => socket.disconnect();
   }, [state.user?.id]);
 
-  const addNotification = (msg, type = 'info') => {
+  const addNotification = (message, type = 'info') => {
     const id = ++notifId;
-    dispatch({ type: 'ADD_NOTIFICATION', payload: { id, type, message: msg } });
+    dispatch({ type: 'ADD_NOTIFICATION', payload: { id, type, message } });
     setTimeout(() => dispatch({ type: 'REMOVE_NOTIFICATION', payload: id }), 4000);
   };
 
@@ -194,18 +177,12 @@ export function AppProvider({ children }) {
   };
 
   return (
-    <AppContext.Provider
-      value={{
-        state,
-        dispatch,
-        addNotification,
-        emitTrackUpdate,
-        addToFriendQueue,
-        inviteListenTogether,
-        acceptListenTogether,
-        sendChatMessage,
-      }}
-    >
+    <AppContext.Provider value={{
+      state, dispatch,
+      addNotification, emitTrackUpdate,
+      addToFriendQueue, inviteListenTogether,
+      acceptListenTogether, sendChatMessage,
+    }}>
       {children}
     </AppContext.Provider>
   );

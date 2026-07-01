@@ -2,20 +2,11 @@ import React, { useState } from 'react';
 import WorldMap from '../components/Map/WorldMap.jsx';
 import FriendPanel from '../components/Friends/FriendPanel.jsx';
 import PlayerBar from '../components/Player/PlayerBar.jsx';
-import SearchModal from '../components/Search/SearchModal.jsx';
 import Header from '../components/UI/Header.jsx';
-import { useApp } from '../context/AppContext.jsx';
+import FriendSheet from '../components/Friends/FriendSheet.jsx';
 
 export default function Dashboard() {
-  const { state } = useApp();
-  const [selectedFriend, setSelectedFriend] = useState(null);
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [searchTarget, setSearchTarget] = useState(null);
-
-  const openQueueSearch = (friend) => {
-    setSearchTarget({ friend, mode: 'queue' });
-    setSearchOpen(true);
-  };
+  const [sheetFriend, setSheetFriend] = useState(null);
 
   return (
     <div style={{
@@ -25,30 +16,22 @@ export default function Dashboard() {
       background: 'var(--bg-primary)',
       overflow: 'hidden',
     }}>
-      <Header onSearchClick={() => { setSearchTarget(null); setSearchOpen(true); }} />
+      <Header />
 
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        <FriendPanel
-          selectedFriend={selectedFriend}
-          onSelectFriend={setSelectedFriend}
-          onQueueForFriend={openQueueSearch}
-        />
+        <FriendPanel onSelectFriend={setSheetFriend} />
 
         <div style={{ flex: 1, position: 'relative' }}>
-          <WorldMap
-            selectedFriend={selectedFriend}
-            onSelectFriend={setSelectedFriend}
-            onQueueForFriend={openQueueSearch}
-          />
+          <WorldMap onSelectFriend={setSheetFriend} />
         </div>
       </div>
 
       <PlayerBar />
 
-      {searchOpen && (
-        <SearchModal
-          target={searchTarget}
-          onClose={() => { setSearchOpen(false); setSearchTarget(null); }}
+      {sheetFriend && (
+        <FriendSheet
+          friend={sheetFriend}
+          onClose={() => setSheetFriend(null)}
         />
       )}
     </div>

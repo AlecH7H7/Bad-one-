@@ -2,7 +2,7 @@ import React from 'react';
 import { useApp } from '../../context/AppContext.jsx';
 import axios from 'axios';
 
-export default function Header({ onSearchClick }) {
+export default function Header() {
   const { state, dispatch } = useApp();
   const { user, onlineFriends } = state;
 
@@ -19,65 +19,28 @@ export default function Header({ onSearchClick }) {
       borderBottom: '1px solid var(--border-subtle)',
       display: 'flex',
       alignItems: 'center',
-      padding: '0 16px',
+      padding: '0 20px',
       gap: '16px',
       flexShrink: 0,
       zIndex: 100,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <div style={{
-          width: '28px',
-          height: '28px',
-          borderRadius: '8px',
+          width: '30px', height: '30px',
+          borderRadius: '9px',
           background: 'linear-gradient(135deg, var(--green), var(--purple))',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '14px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: '15px',
+          boxShadow: '0 2px 8px rgba(29,185,84,0.3)',
         }}>
           🎵
         </div>
-        <span style={{ fontWeight: '700', fontSize: '15px', letterSpacing: '-0.3px' }}>SoundBridge</span>
+        <span style={{ fontWeight: '700', fontSize: '16px', letterSpacing: '-0.3px' }}>SoundBridge</span>
       </div>
-
-      <button
-        onClick={onSearchClick}
-        style={{
-          flex: 1,
-          maxWidth: '400px',
-          height: '36px',
-          background: 'var(--bg-active)',
-          border: '1px solid var(--border)',
-          borderRadius: '50px',
-          color: 'var(--text-muted)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          padding: '0 14px',
-          transition: 'all 0.15s',
-          marginLeft: '8px',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.borderColor = 'var(--text-muted)';
-          e.currentTarget.style.color = 'var(--text-secondary)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.borderColor = 'var(--border)';
-          e.currentTarget.style.color = 'var(--text-muted)';
-        }}
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-          <circle cx="11" cy="11" r="8" />
-          <path d="m21 21-4.35-4.35" />
-        </svg>
-        <span style={{ fontSize: '13px' }}>Search songs, artists...</span>
-      </button>
 
       <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '12px' }}>
         <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '6px',
+          display: 'flex', alignItems: 'center', gap: '6px',
           padding: '4px 10px',
           background: 'var(--green-dim)',
           borderRadius: '50px',
@@ -111,7 +74,10 @@ export default function Header({ onSearchClick }) {
               {user?.displayName?.[0]?.toUpperCase()}
             </div>
           )}
-          <span style={{ fontSize: '13px', color: 'var(--text-secondary)', maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <span style={{
+            fontSize: '13px', color: 'var(--text-secondary)',
+            maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}>
             {user?.displayName}
           </span>
         </div>

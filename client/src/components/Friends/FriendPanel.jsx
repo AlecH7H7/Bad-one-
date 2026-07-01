@@ -1,24 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useApp } from '../../context/AppContext.jsx';
 import FriendCard from './FriendCard.jsx';
-import ChatPanel from './ChatPanel.jsx';
 
-export default function FriendPanel({ selectedFriend, onSelectFriend, onQueueForFriend }) {
+export default function FriendPanel({ onSelectFriend }) {
   const { state } = useApp();
-  const [chatFriend, setChatFriend] = useState(null);
-
-  if (chatFriend) {
-    return (
-      <ChatPanel
-        friend={chatFriend}
-        onBack={() => setChatFriend(null)}
-      />
-    );
-  }
 
   return (
     <div style={{
-      width: '280px',
+      width: '260px',
       flexShrink: 0,
       background: 'var(--bg-secondary)',
       borderRight: '1px solid var(--border-subtle)',
@@ -54,9 +43,9 @@ export default function FriendPanel({ selectedFriend, onSelectFriend, onQueueFor
             textAlign: 'center',
             color: 'var(--text-muted)',
           }}>
-            <div style={{ fontSize: '32px', marginBottom: '12px' }}>🌍</div>
-            <div style={{ fontSize: '13px', lineHeight: '1.5' }}>
-              No friends online yet.<br />Share SoundBridge with friends to see them on the map!
+            <div style={{ fontSize: '36px', marginBottom: '12px' }}>🌍</div>
+            <div style={{ fontSize: '12px', lineHeight: '1.6' }}>
+              No friends online yet. Share SoundBridge with friends to see them on the map!
             </div>
           </div>
         ) : (
@@ -64,13 +53,20 @@ export default function FriendPanel({ selectedFriend, onSelectFriend, onQueueFor
             <FriendCard
               key={friend.id}
               friend={friend}
-              isSelected={selectedFriend?.id === friend.id}
               onClick={() => onSelectFriend(friend)}
-              onQueueSong={() => onQueueForFriend(friend)}
-              onChat={() => setChatFriend(friend)}
             />
           ))
         )}
+      </div>
+
+      <div style={{
+        padding: '12px 16px',
+        borderTop: '1px solid var(--border-subtle)',
+        color: 'var(--text-muted)',
+        fontSize: '11px',
+        textAlign: 'center',
+      }}>
+        Tap a friend or their pin on the map
       </div>
     </div>
   );
