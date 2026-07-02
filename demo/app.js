@@ -71,6 +71,18 @@ const OUTFITS = [
   { id: 'denim',  name: 'Denim',   emoji: '👖' },
 ];
 
+/* Facial hair — drawn in the hair color (see facialHairSVG). */
+const FACIAL_HAIR = [
+  { id: 'none',     name: 'None',     emoji: '🚫' },
+  { id: 'stubble',  name: 'Stubble',  emoji: '🧔' },
+  { id: 'mustache', name: 'Mustache', emoji: '👨' },
+  { id: 'goatee',   name: 'Goatee',   emoji: '🐐' },
+  { id: 'beard',    name: 'Full beard',emoji: '🧔‍♂️' },
+];
+
+/* The "ink" outline colour that gives the Bitmoji look. */
+const INK = '#2a1e15';
+
 /* Song catalog (mock). Album art from Spotify CDN. */
 const SONGS = [
   { name:'Blinding Lights',  artist:'The Weeknd',                     album:'After Hours',              dur:'3:59', art:'https://i.scdn.co/image/ab67616d0000b273b1c4b76e23414c9f20242268' },
@@ -93,16 +105,18 @@ const SONGS = [
   { name:'Peaches',          artist:'Justin Bieber ft. Daniel Caesar',album:'Justice',                  dur:'3:18', art:'https://i.scdn.co/image/ab67616d0000b2739478c87599550dd73bfa7e02' },
   { name:'Sunflower',        artist:'Post Malone & Swae Lee',         album:'Spider-Man: Into…',        dur:'2:38', art:'https://i.scdn.co/image/ab67616d0000b273e2e352d89826aef6dbd5ff8f' },
   { name:'Cruel Summer',     artist:'Taylor Swift',                   album:'Lover',                    dur:'2:58', art:'https://i.scdn.co/image/ab67616d0000b273bb54dde68cd23e2a268ae0f5' },
+  { name:'You Can Be Loved', artist:'Jam Map Sessions',               album:'Singles',                  dur:'3:12', art:'https://i.scdn.co/image/ab67616d0000b2734bc66095f8a70bc4e6593f4f' },
 ];
 
 /* Friends. Each has their own avatar spec (skin, hair, shirt, phones). */
 const FRIENDS = [
-  { id:1, name:'Max',    city:'New York',  country:'USA',    flag:'🇺🇸', lat:40.71,  lng:-74.00,  ring:'#FF6B6B', online:true,  lastSeen:null,          skin:'#F5CFA0', hair:'#4a2c14', hairstyle:'short',    shirt:'#3a3a3a', outfit:'jacket', phones:'beats',      acc:'none',    track:'Blinding Lights', artist:'The Weeknd',   art:SONGS[0].art, unread:1 },
-  { id:2, name:'Sofia',  city:'Barcelona', country:'Spain',  flag:'🇪🇸', lat:41.38,  lng:2.17,    ring:'#9b59f7', online:true,  lastSeen:null,          skin:'#E8B98A', hair:'#1a1a1a', hairstyle:'long',     shirt:'#2b2b2b', outfit:'jacket', phones:'airpods',    acc:'shades',  track:'bad guy',         artist:'Billie Eilish',art:SONGS[1].art, unread:0 },
-  { id:3, name:'Jake',   city:'London',    country:'UK',     flag:'🇬🇧', lat:51.50,  lng:-0.12,   ring:'#4a90e2', online:true,  lastSeen:null,          skin:'#FFE0BD', hair:'#D4A017', hairstyle:'buzz',     shirt:'#ffffff', outfit:'tee',    phones:'sony',       acc:'none',    track:'As It Was',       artist:'Harry Styles', art:SONGS[2].art, unread:0 },
-  { id:4, name:'Mia',    city:'Tokyo',     country:'Japan',  flag:'🇯🇵', lat:35.68,  lng:139.69,  ring:'#FF69B4', online:true,  lastSeen:null,          skin:'#F5CFA0', hair:'#e8613c', hairstyle:'bangs',    shirt:'#8fb6e8', outfit:'denim',  phones:'airpodsmax', acc:'glasses', track:'Seven',           artist:'Jung Kook',    art:SONGS[8].art, unread:0 },
-  { id:5, name:'Carlos', city:'São Paulo', country:'Brazil', flag:'🇧🇷', lat:-23.55, lng:-46.63,  ring:'#2ACEA7', online:false, lastSeen:'20 min ago',  skin:'#8D5524', hair:'#1a1a1a', hairstyle:'curly',    shirt:'#2ACEA7', outfit:'hoodie', phones:'jbl',        acc:'none',    track:'Flowers',         artist:'Miley Cyrus',  art:SONGS[3].art, unread:0 },
-  { id:6, name:'Priya',  city:'Mumbai',    country:'India',  flag:'🇮🇳', lat:19.07,  lng:72.87,   ring:'#FFB800', online:false, lastSeen:'2 hours ago', skin:'#C68642', hair:'#1a1a1a', hairstyle:'ponytail', shirt:'#8fb6e8', outfit:'denim',  phones:'galaxy',     acc:'none',    track:'Levitating',      artist:'Dua Lipa',     art:SONGS[5].art, unread:0 },
+  { id:1, name:'Max',    city:'New York',  country:'USA',    flag:'🇺🇸', lat:40.71,  lng:-74.00,  ring:'#FF6B6B', online:true,  lastSeen:null,          skin:'#F5CFA0', hair:'#4a2c14', hairstyle:'short',    beard:'stubble', shirt:'#3a3a3a', outfit:'jacket', phones:'beats',      acc:'none',    track:'Blinding Lights', artist:'The Weeknd',   art:SONGS[0].art, unread:1 },
+  { id:2, name:'Sofia',  city:'Barcelona', country:'Spain',  flag:'🇪🇸', lat:41.38,  lng:2.17,    ring:'#9b59f7', online:true,  lastSeen:null,          skin:'#E8B98A', hair:'#1a1a1a', hairstyle:'long',     beard:'none',    shirt:'#2b2b2b', outfit:'jacket', phones:'airpods',    acc:'shades',  track:'bad guy',         artist:'Billie Eilish',art:SONGS[1].art, unread:0 },
+  { id:3, name:'Jake',   city:'London',    country:'UK',     flag:'🇬🇧', lat:51.50,  lng:-0.12,   ring:'#4a90e2', online:true,  lastSeen:null,          skin:'#FFE0BD', hair:'#D4A017', hairstyle:'buzz',     beard:'none',    shirt:'#ffffff', outfit:'tee',    phones:'sony',       acc:'none',    track:'As It Was',       artist:'Harry Styles', art:SONGS[2].art, unread:0 },
+  { id:4, name:'Mia',    city:'Tokyo',     country:'Japan',  flag:'🇯🇵', lat:35.68,  lng:139.69,  ring:'#FF69B4', online:true,  lastSeen:null,          skin:'#F5CFA0', hair:'#e8613c', hairstyle:'bangs',    beard:'none',    shirt:'#8fb6e8', outfit:'denim',  phones:'airpodsmax', acc:'glasses', track:'Seven',           artist:'Jung Kook',    art:SONGS[8].art, unread:0 },
+  { id:5, name:'Carlos', city:'São Paulo', country:'Brazil', flag:'🇧🇷', lat:-23.55, lng:-46.63,  ring:'#2ACEA7', online:false, lastSeen:'20 min ago',  skin:'#8D5524', hair:'#1a1a1a', hairstyle:'curly',    beard:'beard',   shirt:'#2ACEA7', outfit:'hoodie', phones:'jbl',        acc:'none',    track:'Flowers',         artist:'Miley Cyrus',  art:SONGS[3].art, unread:0 },
+  { id:6, name:'Priya',  city:'Mumbai',    country:'India',  flag:'🇮🇳', lat:19.07,  lng:72.87,   ring:'#FFB800', online:false, lastSeen:'2 hours ago', skin:'#C68642', hair:'#1a1a1a', hairstyle:'ponytail', beard:'none',    shirt:'#8fb6e8', outfit:'denim',  phones:'galaxy',     acc:'none',    track:'Levitating',      artist:'Dua Lipa',     art:SONGS[5].art, unread:0 },
+  { id:7, name:'Simon',  city:'Madrid',    country:'Spain',  flag:'🇪🇸', lat:40.42,  lng:-3.70,   ring:'#1DB954', online:true,  lastSeen:null,          skin:'#E8B98A', hair:'#4a2c14', hairstyle:'short',    beard:'goatee',  shirt:'#1DB954', outfit:'hoodie', phones:'airpods',    acc:'none',    track:'Starboy',         artist:'The Weeknd',   art:SONGS[11].art, unread:0 },
 ];
 
 /* Chat history keyed by friend id */
@@ -125,6 +139,7 @@ const CHATS = {
   4: [ { day:'TODAY' }, { from:'me', text:'ohayo 🌸', time:'8:00 AM' }, { from:'them', text:'send tunes!', time:'8:05 AM' } ],
   5: [ { day:'LAST WEEK' }, { from:'them', text:'thanks for the flowers track 💚', time:'Mon' } ],
   6: [ { day:'LAST WEEK' }, { from:'me', text:'levitating is stuck in my head', time:'Fri' } ],
+  7: [ { day:'TODAY' }, { from:'them', text:'yo I just logged into Jam Map 🎧', time:'10:15 AM' }, { from:'them', text:'send me something good', time:'10:15 AM' } ],
 };
 
 /* Activity feed */
@@ -159,6 +174,7 @@ const ME = {
   outfit: 'tee',
   phones: 'airpods',
   acc: 'none',
+  beard: 'none',
   city: 'Paris',
   country: 'France',
   lat: 48.85,
@@ -333,58 +349,103 @@ function outfitSVG(outfit, color) {
   }
 }
 
-/* Returns a full SVG string for a character. */
+/* Facial hair, drawn in the hair colour with an ink outline. */
+function facialHairSVG(id, hair) {
+  const dk = shade(hair, -0.2);
+  switch (id) {
+    case 'stubble':
+      return `<path d="M34 58 Q34 70 50 70 Q66 70 66 58 Q64 64 58 64 Q54 66 50 66 Q46 66 42 64 Q36 64 34 58 Z" fill="${hair}" opacity=".28"/>`;
+    case 'mustache':
+      return `<path d="M43 58.5 Q46 57 50 58 Q54 57 57 58.5 Q54 61 50 60 Q46 61 43 58.5 Z" fill="${hair}" stroke="${INK}" stroke-width="0.8" stroke-linejoin="round"/>`;
+    case 'goatee':
+      return `<path d="M44 58.5 Q46 57 50 58 Q54 57 56 58.5 Q54 60.5 50 59.8 Q46 60.5 44 58.5 Z" fill="${hair}"/>
+        <path d="M45 63 Q50 72 55 63 Q53 67 50 67 Q47 67 45 63 Z" fill="${hair}" stroke="${INK}" stroke-width="0.8" stroke-linejoin="round"/>`;
+    case 'beard':
+      return `<path d="M32 50 Q31 66 42 72 Q46 74 50 74 Q54 74 58 72 Q69 66 68 50 Q66 60 60 63 L60 60 Q55 62 50 62 Q45 62 40 60 L40 63 Q34 60 32 50 Z" fill="${hair}" stroke="${INK}" stroke-width="1.1" stroke-linejoin="round"/>
+        <path d="M43 58 Q46 56.5 50 57.5 Q54 56.5 57 58 Q54 60.5 50 59.6 Q46 60.5 43 58 Z" fill="${dk}"/>`;
+    default: return '';
+  }
+}
+
+/* Returns a full SVG string for a character. Cel-shaded, bold-outlined
+   Bitmoji-inspired portrait. */
 function avatarSVG(spec) {
   const skin = spec.skin, hair = spec.hair, color = spec.shirt;
   const style = spec.hairstyle || 'short';
   const outfit = spec.outfit || 'tee';
+  const beard = spec.beard || 'none';
   const uid = spec._uid || 'x';
   const wig = hairstyleSVG(style, hair);
   const hatOn = (spec.acc === 'cap' || spec.acc === 'beanie');
-  const skinShadow = shade(skin, -0.14);
-  const blush = shade(skin, -0.05);
-  const browColor = shade(hair, -0.15);
+  const skinShadow = shade(skin, -0.16);
+  const skinOutline = shade(skin, -0.5);
+  const browColor = shade(hair, -0.2);
+  const irisColor = shade(hair === '#1a1a1a' ? '#5b3a1e' : hair, -0.05);
   return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
     <defs><clipPath id="clip-${uid}"><circle cx="50" cy="50" r="50"/></clipPath></defs>
     <g clip-path="url(#clip-${uid})">
       <rect width="100" height="100" fill="#1c1c1c"/>
-      <circle cx="50" cy="50" r="50" fill="#242424"/>
+      <circle cx="50" cy="50" r="50" fill="#262626"/>
+
       <!-- back hair (long/curly/bun/ponytail) -->
-      ${hatOn ? '' : wig.back}
-      <!-- outfit -->
-      ${outfitSVG(outfit, color)}
+      ${hatOn ? '' : `<g stroke="${INK}" stroke-width="1.2" stroke-linejoin="round">${wig.back}</g>`}
+
+      <!-- outfit (bold outline) -->
+      <g stroke="${INK}" stroke-width="1.6" stroke-linejoin="round">${outfitSVG(outfit, color)}</g>
+
       <!-- neck + shadow -->
-      <path d="M43 62 h14 v10 q-7 4 -14 0 Z" fill="${skin}"/>
-      <path d="M43 63 q7 5 14 0 v3 q-7 4 -14 0 Z" fill="${skinShadow}" opacity=".6"/>
+      <path d="M43 61 h14 v10 q-7 4 -14 0 Z" fill="${skin}" stroke="${skinOutline}" stroke-width="1.2" stroke-linejoin="round"/>
+      <path d="M43 62 q7 5 14 0 v3.5 q-7 4 -14 0 Z" fill="${skinShadow}" opacity=".55"/>
+
       <!-- ears -->
-      <circle cx="29.5" cy="49" r="5" fill="${skin}"/><circle cx="70.5" cy="49" r="5" fill="${skin}"/>
-      <circle cx="29.5" cy="49" r="2" fill="${skinShadow}" opacity=".5"/><circle cx="70.5" cy="49" r="2" fill="${skinShadow}" opacity=".5"/>
+      <circle cx="29.5" cy="49" r="5" fill="${skin}" stroke="${skinOutline}" stroke-width="1.2"/>
+      <circle cx="70.5" cy="49" r="5" fill="${skin}" stroke="${skinOutline}" stroke-width="1.2"/>
+      <path d="M28.5 47 Q31 49 29.5 51.5" stroke="${skinOutline}" stroke-width="1" fill="none" opacity=".6"/>
+      <path d="M71.5 47 Q69 49 70.5 51.5" stroke="${skinOutline}" stroke-width="1" fill="none" opacity=".6"/>
+
       <!-- head -->
-      <path d="M30 44 Q30 22 50 22 Q70 22 70 44 Q70 60 60 66 Q55 69 50 69 Q45 69 40 66 Q30 60 30 44 Z" fill="${skin}"/>
+      <path d="M30 44 Q30 22 50 22 Q70 22 70 44 Q70 60 60 66 Q55 69 50 69 Q45 69 40 66 Q30 60 30 44 Z" fill="${skin}" stroke="${skinOutline}" stroke-width="1.4" stroke-linejoin="round"/>
+      <!-- jaw/temple cel-shadow -->
+      <path d="M30 44 Q30 58 40 65 Q34 58 33 46 Z" fill="${skinShadow}" opacity=".35"/>
+      <path d="M70 44 Q70 58 60 65 Q66 58 67 46 Z" fill="${skinShadow}" opacity=".35"/>
+
       <!-- cheeks blush -->
-      <ellipse cx="37" cy="55" rx="4" ry="2.6" fill="#ff8f7a" opacity=".22"/>
-      <ellipse cx="63" cy="55" rx="4" ry="2.6" fill="#ff8f7a" opacity=".22"/>
+      <ellipse cx="37.5" cy="55" rx="4" ry="2.6" fill="#ff8f7a" opacity=".28"/>
+      <ellipse cx="62.5" cy="55" rx="4" ry="2.6" fill="#ff8f7a" opacity=".28"/>
+
       <!-- eyebrows -->
-      <path d="M37 43 Q42 40.5 47 43" stroke="${browColor}" stroke-width="2" fill="none" stroke-linecap="round"/>
-      <path d="M53 43 Q58 40.5 63 43" stroke="${browColor}" stroke-width="2" fill="none" stroke-linecap="round"/>
-      <!-- eyes: white, iris, pupil, highlight -->
-      <ellipse cx="42" cy="49" rx="3.6" ry="4.2" fill="#fff"/>
-      <ellipse cx="58" cy="49" rx="3.6" ry="4.2" fill="#fff"/>
-      <circle cx="42.3" cy="49.4" r="2.5" fill="${shade(hair, 0.1)}"/>
-      <circle cx="58.3" cy="49.4" r="2.5" fill="${shade(hair, 0.1)}"/>
-      <circle cx="42.3" cy="49.4" r="1.3" fill="#171717"/>
-      <circle cx="58.3" cy="49.4" r="1.3" fill="#171717"/>
-      <circle cx="43.3" cy="48.2" r=".9" fill="#fff"/>
-      <circle cx="59.3" cy="48.2" r=".9" fill="#fff"/>
+      <path d="M37 43 Q42 40 47 42.5" stroke="${browColor}" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+      <path d="M53 42.5 Q58 40 63 43" stroke="${browColor}" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+
+      <!-- eyes: white, iris, pupil, highlight, lash line -->
+      <ellipse cx="42" cy="49" rx="3.7" ry="4.3" fill="#fff"/>
+      <ellipse cx="58" cy="49" rx="3.7" ry="4.3" fill="#fff"/>
+      <circle cx="42.3" cy="49.5" r="2.7" fill="${irisColor}"/>
+      <circle cx="58.3" cy="49.5" r="2.7" fill="${irisColor}"/>
+      <circle cx="42.3" cy="49.5" r="1.4" fill="#171717"/>
+      <circle cx="58.3" cy="49.5" r="1.4" fill="#171717"/>
+      <circle cx="43.4" cy="48.1" r="1" fill="#fff"/>
+      <circle cx="59.4" cy="48.1" r="1" fill="#fff"/>
+      <!-- upper lash line (Bitmoji signature) -->
+      <path d="M38.3 46.6 Q42 44.6 45.7 46.6" stroke="${INK}" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <path d="M54.3 46.6 Q58 44.6 61.7 46.6" stroke="${INK}" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+
       <!-- nose -->
-      <path d="M50 51 Q48.4 55 50 56.2" stroke="${skinShadow}" stroke-width="1.4" fill="none" stroke-linecap="round" opacity=".7"/>
+      <path d="M50 51 Q48.2 55 50 56.4 Q51 56.6 51.6 56" stroke="${skinOutline}" stroke-width="1.3" fill="none" stroke-linecap="round" opacity=".7"/>
+
       <!-- smile -->
-      <path d="M43 59.5 Q50 65 57 59.5" stroke="#a8503b" stroke-width="2.1" fill="none" stroke-linecap="round"/>
-      <path d="M45 61 Q50 63.5 55 61" fill="#fff" opacity=".85"/>
-      <!-- front hair -->
-      ${hatOn ? '' : wig.front}
+      <path d="M42.5 59.5 Q50 65.5 57.5 59.5" stroke="${INK}" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <path d="M45 61 Q50 63.8 55 61 Q50 62 45 61 Z" fill="#fff"/>
+
+      <!-- facial hair -->
+      ${facialHairSVG(beard, hair)}
+
+      <!-- front hair (bold outline) -->
+      ${hatOn ? '' : `<g stroke="${INK}" stroke-width="1.3" stroke-linejoin="round">${wig.front}</g>`}
+
       <!-- accessory -->
       ${accessorySVG(spec.acc, skin)}
+
       <!-- headphones -->
       ${headphoneSVG(spec.phones)}
     </g>
@@ -429,6 +490,12 @@ function buildBuilderControls() {
     <button class="tile ${ME.phones === h.id ? 'sel' : ''}" data-phones="${h.id}" onclick="pickPhones('${h.id}',this)">
       <div class="tile-ico">${miniPhoneIcon(h)}</div>
       <div class="tile-txt"><div class="tile-name">${h.name}</div><div class="tile-sub">${h.sub}</div></div>
+    </button>`).join('');
+
+  document.getElementById('opt-beard').innerHTML = FACIAL_HAIR.map(f => `
+    <button class="tile ${ME.beard === f.id ? 'sel' : ''}" data-beard="${f.id}" onclick="pickBeard('${f.id}',this)">
+      <div class="tile-ico" style="font-size:20px">${f.emoji}</div>
+      <div class="tile-txt"><div class="tile-name">${f.name}</div></div>
     </button>`).join('');
 
   document.getElementById('opt-acc').innerHTML = ACCESSORIES.map(a => `
@@ -498,6 +565,12 @@ function pickAcc(id, el) {
   el.classList.add('sel');
   renderAvatarPreview();
 }
+function pickBeard(id, el) {
+  ME.beard = id;
+  document.querySelectorAll('#opt-beard .tile').forEach(t => t.classList.remove('sel'));
+  el.classList.add('sel');
+  renderAvatarPreview();
+}
 
 function renderAvatarPreview() {
   ME.name = document.getElementById('me-name').value || 'You';
@@ -513,6 +586,7 @@ function randomizeAvatar() {
   ME.outfit = pick(OUTFITS).id;
   ME.phones = pick(HEADPHONES.filter(h => h.type !== 'none')).id;
   ME.acc = pick(ACCESSORIES.filter(a => a.id === 'none' || Math.random() > 0.5)).id;
+  ME.beard = pick(FACIAL_HAIR.filter(f => f.id === 'none' || Math.random() > 0.5)).id;
   buildBuilderControls();
   renderAvatarPreview();
 }
@@ -807,6 +881,7 @@ function swLeave(e, i) {
 function queueSong(i) {
   const song = visSongs[i];
   if (!song || !curFriend) return;
+  blip();
   toast('🎵', `"${song.name}" sent to ${curFriend.name}'s queue!`);
   // also drop into chat as a shared song
   (CHATS[curFriend.id] = CHATS[curFriend.id] || []).push({ from: 'me', song: { name: song.name, artist: song.artist, art: song.art }, time: nowTime() });
@@ -824,7 +899,8 @@ function renderChat(id) {
     if (m.day) return `<div class="chat-day">${m.day}</div>`;
     if (m.song) {
       const side = m.from === 'me' ? 'me-song' : 'them-song';
-      return `<div class="msg-song ${side}">
+      const esc = s => (s || '').replace(/'/g, "\\'");
+      return `<div class="msg-song ${side}" onclick="playSong('${esc(m.song.name)}','${esc(m.song.artist)}','${esc(m.song.art)}')" style="cursor:pointer">
         <div class="msg-song-art"><img src="${m.song.art}" onerror="this.style.display='none'"/></div>
         <div class="msg-song-info"><div class="msg-song-label">🎵 ${m.from === 'me' ? 'YOU SENT' : 'SHARED A SONG'}</div>
           <div class="msg-song-name">${m.song.name}</div><div class="msg-song-artist">${m.song.artist}</div></div>
@@ -990,14 +1066,89 @@ function pushNotif(ico, ttl, msg) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   8. PLAYER
+   8. PLAYER  (+ built-in Web Audio synth so the play button makes sound)
+
+   NOTE: We can't stream real Spotify songs in a standalone demo — that
+   needs the real Spotify connection (licensing). So the play button
+   plays an original synthesized "preview" melody, generated live in the
+   browser, so the app is audibly interactive with zero copyright issues.
    ═══════════════════════════════════════════════════════════════════ */
+
+let audioCtx = null, audioMaster = null, audioLoop = null, audioStep = 0;
+// A pleasant original chord/arpeggio loop (Cmaj7-ish), purely synthesized.
+const MELODY = [261.63, 329.63, 392.00, 493.88, 392.00, 329.63];
+
+function ensureAudio() {
+  if (!audioCtx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return false;
+    audioCtx = new AC();
+    audioMaster = audioCtx.createGain();
+    audioMaster.gain.value = 0.05;
+    audioMaster.connect(audioCtx.destination);
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return true;
+}
+
+function startMusic() {
+  if (!ensureAudio()) return;
+  stopMusic();
+  audioStep = 0;
+  audioLoop = setInterval(() => {
+    const t = audioCtx.currentTime;
+    const freq = MELODY[audioStep % MELODY.length];
+    // pluck note
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = 'triangle'; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(1, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.42);
+    o.connect(g); g.connect(audioMaster); o.start(t); o.stop(t + 0.45);
+    // soft bass every other step
+    if (audioStep % 2 === 0) {
+      const b = audioCtx.createOscillator(), bg = audioCtx.createGain();
+      b.type = 'sine'; b.frequency.value = freq / 2;
+      bg.gain.setValueAtTime(0.0001, t);
+      bg.gain.linearRampToValueAtTime(0.6, t + 0.03);
+      bg.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
+      b.connect(bg); bg.connect(audioMaster); b.start(t); b.stop(t + 0.55);
+    }
+    audioStep++;
+  }, 280);
+}
+
+function stopMusic() {
+  if (audioLoop) { clearInterval(audioLoop); audioLoop = null; }
+}
+
+/* short confirmation blip when a song is queued/sent */
+function blip() {
+  if (!ensureAudio()) return;
+  const t = audioCtx.currentTime;
+  const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+  o.type = 'sine'; o.frequency.setValueAtTime(660, t); o.frequency.exponentialRampToValueAtTime(990, t + 0.12);
+  g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.5, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.2);
+  o.connect(g); g.connect(audioMaster); o.start(t); o.stop(t + 0.22);
+}
+
 function togglePlay() {
   isPlaying = !isPlaying;
   document.getElementById('play-svg').innerHTML = isPlaying
     ? '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>'
     : '<path d="M8 5v14l11-7z"/>';
-  isPlaying ? startProg() : stopProg();
+  if (isPlaying) { startProg(); startMusic(); }
+  else { stopProg(); stopMusic(); }
+}
+
+/* Play a specific song in the bottom bar (used by chat song cards & rows). */
+function playSong(name, artist, art) {
+  document.getElementById('p-song').textContent = name;
+  document.getElementById('p-artist').textContent = artist;
+  if (art) { const im = document.getElementById('p-art-img'); im.src = art; im.style.display = ''; }
+  progVal = 0; document.getElementById('p-fill').style.width = '0%'; document.getElementById('p-cur').textContent = '0:00';
+  if (!isPlaying) togglePlay();
+  toast('▶️', `Now playing "${name}"`);
 }
 function startProg() {
   clearInterval(progTimer);
