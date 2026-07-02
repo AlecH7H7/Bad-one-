@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Spotify Jam Map — LIVE</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#1DB954;--green2:#1ed760;--gdim:rgba(29,185,84,.12);--gglow:rgba(29,185,84,.35);
+  --bg:#000;--bg2:#0a0a0a;--bg3:#121212;--surf:#1a1a1a;--surf2:#282828;--surf3:#333;--hov:#2a2a2a;
+  --t1:#fff;--t2:#b3b3b3;--t3:#727272;
+  --bdr:rgba(255,255,255,.08);--bdr2:rgba(255,255,255,.15);
+  --red:#e22134;--shadow:0 24px 70px rgba(0,0,0,.85);
+}
+html,body{height:100%;background:var(--bg);color:var(--t1);font-family:'Inter',sans-serif;font-size:14px;-webkit-font-smoothing:antialiased}
+body{overflow:hidden}
+button{cursor:pointer;border:none;font-family:inherit;background:transparent;color:inherit}
+input{font-family:inherit}
+img,svg{display:block}
+.hidden{display:none!important}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:6px}
+
+/* LIVE badge */
+.livetag{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;background:var(--red);border-radius:500px;font-size:10px;font-weight:800;letter-spacing:.5px}
+.livetag .d{width:6px;height:6px;border-radius:50%;background:#fff;animation:bl 1.4s infinite}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* SETUP / LOGIN SCREENS share a centered card */
+.screen{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:22px;
+  background:radial-gradient(ellipse at 50% -10%,#0d3320 0%,#000 60%);overflow-y:auto}
+.screen.on{display:flex}
+.card{width:100%;max-width:440px;background:linear-gradient(180deg,#161616,#0c0c0c);border:1px solid var(--bdr2);
+  border-radius:24px;padding:30px 26px;box-shadow:var(--shadow);margin:auto}
+.logo{width:66px;height:66px;border-radius:20px;margin:0 auto 18px;
+  background:linear-gradient(135deg,#1DB954,#0d8037 55%,#9b59f7);display:flex;align-items:center;justify-content:center;
+  box-shadow:0 8px 30px rgba(29,185,84,.45)}
+h1{font-size:24px;font-weight:900;text-align:center;letter-spacing:-.5px}
+h1 em{font-style:normal;color:var(--green)}
+.sub{font-size:13px;color:var(--t2);text-align:center;margin-top:8px;line-height:1.55}
+.field{margin-top:18px}
+.field label{font-size:11px;font-weight:700;color:var(--t3);letter-spacing:.5px;display:block;margin-bottom:7px}
+.field input{width:100%;padding:13px 16px;background:var(--surf);border:1px solid var(--bdr2);border-radius:12px;
+  color:var(--t1);font-size:15px;font-weight:600;outline:none;transition:border-color .2s}
+.field input:focus{border-color:var(--green)}
+.btn{width:100%;margin-top:20px;padding:15px;background:var(--green);color:#000;font-size:15px;font-weight:800;
+  border-radius:500px;transition:all .18s}
+.btn:hover{background:var(--green2);transform:translateY(-1px)}
+.btn:disabled{background:var(--surf2);color:var(--t3);transform:none}
+.note{font-size:12px;color:var(--t3);text-align:center;margin-top:16px;line-height:1.5}
+.note b{color:var(--t2)}
+.code{background:var(--surf);border:1px solid var(--bdr);border-radius:10px;padding:12px;font-family:ui-monospace,monospace;
+  font-size:11px;color:var(--green);text-align:left;margin-top:14px;overflow-x:auto;white-space:pre;line-height:1.6}
+
+/* avatar builder (compact) */
+.stage{width:130px;height:130px;margin:0 auto 6px;position:relative;display:flex;align-items:center;justify-content:center}
+.stage-glow{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,var(--gglow),transparent 65%)}
+#av-preview{width:120px;height:120px;position:relative;z-index:1}
+.rowopts{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:10px}
+.sw{width:34px;height:34px;border-radius:9px;cursor:pointer;border:2.5px solid transparent}
+.sw.sel{border-color:#fff;box-shadow:0 0 0 2px var(--green)}
+.chip{padding:8px 12px;border-radius:10px;background:var(--surf);border:1px solid var(--bdr);font-size:12px;font-weight:600;cursor:pointer}
+.chip.sel{border-color:var(--green);background:var(--gdim);color:var(--green)}
+.optlabel{font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.5px;text-align:center;margin:14px 0 2px}
+
+/* MAIN APP */
+#app{display:none;flex-direction:column;height:100vh}
+#app.on{display:flex}
+header{height:60px;flex-shrink:0;background:rgba(0,0,0,.96);border-bottom:1px solid var(--bdr);
+  display:flex;align-items:center;gap:12px;padding:0 18px}
+.brand{font-size:15px;font-weight:800}.brand em{font-style:normal;color:var(--green)}
+.me-chip{margin-left:auto;display:flex;align-items:center;gap:8px;padding:4px 6px 4px 12px;background:var(--surf2);
+  border:1px solid var(--bdr);border-radius:500px}
+.me-chip .nm{font-size:13px;font-weight:700}
+.me-av{width:30px;height:30px;border-radius:50%;overflow:hidden}
+.invite-btn{display:flex;align-items:center;gap:7px;padding:8px 14px;background:var(--green);color:#000;
+  border-radius:500px;font-size:12px;font-weight:800}
+.invite-btn:hover{background:var(--green2)}
+
+#body{flex:1;display:flex;overflow:hidden}
+#list{width:300px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--bdr);display:flex;flex-direction:column;overflow:hidden}
+.list-h{padding:14px 16px;font-size:12px;font-weight:800;letter-spacing:.5px;color:var(--t3);border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between}
+.count{background:var(--gdim);color:var(--green);font-size:11px;font-weight:800;padding:2px 8px;border-radius:500px}
+.people{flex:1;overflow-y:auto;padding:8px}
+.person{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;cursor:pointer;border:1px solid transparent;margin-bottom:2px}
+.person:hover{background:var(--hov)}
+.person.sel{background:var(--surf2);border-color:var(--bdr)}
+.p-avwrap{position:relative;width:44px;height:44px;flex-shrink:0}
+.p-av{width:44px;height:44px;border-radius:50%;overflow:hidden;background:var(--surf2)}
+.p-dot{position:absolute;bottom:0;right:0;width:12px;height:12px;border-radius:50%;border:2.5px solid var(--bg2)}
+.p-dot.on{background:var(--green)}.p-dot.off{background:var(--surf3)}
+.p-info{flex:1;min-width:0}
+.p-name{font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.p-status{font-size:11px;color:var(--t3);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.p-unread{margin-left:auto;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--green);color:#000;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.empty{padding:30px 18px;text-align:center;color:var(--t3);font-size:12px;line-height:1.6}
+.empty .big{font-size:34px;display:block;margin-bottom:10px;opacity:.6}
+
+#panel{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg3)}
+.panel-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--t3);gap:12px;text-align:center;padding:24px}
+.panel-empty .big{font-size:48px}
+.chat-hero{display:flex;align-items:center;gap:13px;padding:15px 20px;border-bottom:1px solid var(--bdr);flex-shrink:0}
+.ch-av{width:48px;height:48px;border-radius:50%;overflow:hidden;border:2.5px solid var(--green)}
+.ch-name{font-size:16px;font-weight:800}
+.ch-status{font-size:12px;color:var(--t3);margin-top:2px}
+.tabbar{display:flex;gap:4px;padding:0 16px;border-bottom:1px solid var(--bdr);flex-shrink:0}
+.tab{padding:12px 14px;font-size:13px;font-weight:700;color:var(--t3);border-bottom:2px solid transparent;cursor:pointer}
+.tab.on{color:var(--t1);border-bottom-color:var(--green)}
+.pane{display:none;flex:1;flex-direction:column;overflow:hidden}
+.pane.on{display:flex}
+
+.search{padding:12px 16px;flex-shrink:0}
+.search input{width:100%;background:var(--surf2);border:1px solid var(--bdr);border-radius:500px;padding:11px 18px;color:var(--t1);font-size:13px;outline:none}
+.songs{flex:1;overflow-y:auto;padding:0 8px 12px}
+.song{display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:10px;cursor:pointer}
+.song:hover{background:var(--hov)}
+.song-art{width:44px;height:44px;border-radius:7px;overflow:hidden;flex-shrink:0;background:var(--surf2)}
+.song-art img{width:100%;height:100%;object-fit:cover}
+.song-info{flex:1;min-width:0}
+.song-name{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.song-artist{font-size:11px;color:var(--t3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.song-send{padding:7px 14px;border-radius:500px;background:var(--green);color:#000;font-size:11px;font-weight:800;flex-shrink:0}
+.song-send:hover{background:var(--green2)}
+
+.chat{flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:9px}
+.msg{max-width:76%;padding:9px 13px;border-radius:15px;font-size:13px;line-height:1.45;word-wrap:break-word}
+.msg.them{align-self:flex-start;background:var(--surf2);border-bottom-left-radius:5px}
+.msg.me{align-self:flex-end;background:var(--green);color:#000;border-bottom-right-radius:5px}
+.msg-t{font-size:9px;opacity:.6;margin-top:3px;text-align:right}
+.msg-song{max-width:78%;display:flex;align-items:center;gap:10px;padding:9px;border:1px solid rgba(29,185,84,.3);border-radius:13px;background:var(--gdim);cursor:pointer}
+.msg-song.me{align-self:flex-end}.msg-song.them{align-self:flex-start}
+.msg-song img{width:40px;height:40px;border-radius:7px;flex-shrink:0}
+.ms-name{font-size:12px;font-weight:700}.ms-art{font-size:10px;color:var(--t3)}
+.ms-play{width:28px;height:28px;border-radius:50%;background:var(--green);color:#000;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+.chatbar{padding:12px 16px;border-top:1px solid var(--bdr);display:flex;gap:10px;flex-shrink:0}
+.chatbar input{flex:1;background:var(--surf2);border:1px solid var(--bdr);border-radius:500px;padding:11px 16px;color:var(--t1);font-size:13px;outline:none}
+.chatbar button{width:42px;height:42px;border-radius:50%;background:var(--green);color:#000;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+/* toast + modal */
+#toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(14px);background:linear-gradient(135deg,#1e1e1e,#252525);
+  border:1px solid var(--bdr2);color:var(--t1);font-size:13px;font-weight:600;padding:12px 20px;border-radius:500px;opacity:0;
+  transition:all .3s;pointer-events:none;z-index:970;display:flex;align-items:center;gap:9px;box-shadow:var(--shadow)}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.modal{position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.78);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:22px}
+.modal.on{display:flex}
+.modal .card{max-width:400px}
+.linkrow{display:flex;gap:8px;margin-top:16px}
+.linkrow input{flex:1;background:var(--surf);border:1px solid var(--bdr);border-radius:10px;padding:12px;color:var(--t2);font-size:12px;outline:none}
+.linkrow button{padding:12px 18px;border-radius:10px;background:var(--green);color:#000;font-weight:800;font-size:13px}
+.sharegrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.share{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 6px;border-radius:12px;background:var(--surf2);border:1px solid var(--bdr);cursor:pointer}
+.share:hover{background:var(--hov)}
+.share .ic{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.share .lb{font-size:10px;color:var(--t2)}
+.x{position:absolute;top:14px;right:16px;font-size:20px;color:var(--t3)}
+
+@media (max-width:820px){#list{width:100%}#panel{display:none;position:fixed;inset:60px 0 0;z-index:40}#panel.mobile-on{display:flex}}
+</style>
+</head>
+<body>
+
+<!-- ══ SETUP NEEDED (no firebase config) ══ -->
+<div class="screen" id="setup">
+  <div class="card">
+    <div class="logo">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#fff" stroke-width="1.4" opacity=".5"/><path d="M7 9.5c2.6-1.3 7.4-1.3 9.5.8" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><path d="M6 13c3.2-1.9 8.4-1.9 11.6 0" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><path d="M8.2 16.5c2.1-1.1 5.3-1.1 7.4 0" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>
+    </div>
+    <h1><em>One step</em> to go live</h1>
+    <p class="sub">This is the <b>real</b> version — friends log in from their own phones and send each other songs live. It just needs a free Firebase backend connected.</p>
+    <div class="code">1. console.firebase.google.com → Create project
+2. Add a Web app (&lt;/&gt; icon) → copy config
+3. Paste it into demo/firebase-config.js
+4. Build → Realtime Database → Create</div>
+    <p class="note">Ask Claude to wire in your config and this screen disappears. <br/><b>Meanwhile, try the full demo →</b></p>
+    <a class="btn" href="index.html" style="display:block;text-align:center;text-decoration:none">Open the demo instead</a>
+  </div>
+</div>
+
+<!-- ══ LOGIN / AVATAR ══ -->
+<div class="screen" id="login">
+  <div class="card">
+    <div style="text-align:center;margin-bottom:6px"><span class="livetag"><span class="d"></span>LIVE</span></div>
+    <h1>Join <em>Jam Map</em></h1>
+    <p class="sub" id="login-sub">Create your character and hop on the map. Friends will see you online.</p>
+
+    <div class="stage"><div class="stage-glow"></div><div id="av-preview"></div></div>
+
+    <div class="optlabel">SKIN</div><div class="rowopts" id="opt-skin"></div>
+    <div class="optlabel">HAIR</div><div class="rowopts" id="opt-hair"></div>
+    <div class="optlabel">HAIRSTYLE</div><div class="rowopts" id="opt-style"></div>
+    <div class="optlabel">HEADPHONES</div><div class="rowopts" id="opt-phones"></div>
+    <div class="optlabel">OUTFIT COLOR</div><div class="rowopts" id="opt-shirt"></div>
+
+    <div class="field"><label>YOUR NAME</label><input type="text" id="me-name" placeholder="e.g. Alec" maxlength="16"/></div>
+    <button class="btn" id="join-btn" onclick="doJoin()">🎧 Go live</button>
+    <p class="note">Your name + character are shared with people you connect with.</p>
+  </div>
+</div>
+
+<!-- ══ MAIN APP ══ -->
+<div id="app">
+  <header>
+    <span class="brand"><em>Spotify</em> Jam Map</span>
+    <span class="livetag"><span class="d"></span>LIVE</span>
+    <button class="invite-btn" onclick="openInvite()" style="margin-left:16px">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M15 12c2.2 0 4-1.8 4-4s-1.8-4-4-4-4 1.8-4 4 1.8 4 4 4zM6 11V8H4v3H1v2h3v3h2v-3h3v-2H6zm9 3c-2.7 0-8 1.3-8 4v3h16v-3c0-2.7-5.3-4-8-4z"/></svg>
+      Invite a friend
+    </button>
+    <div class="me-chip">
+      <span class="nm" id="me-chip-name"></span>
+      <div class="me-av" id="me-chip-av"></div>
+    </div>
+  </header>
+  <div id="body">
+    <div id="list">
+      <div class="list-h"><span>PEOPLE</span><span class="count" id="online-count">0 online</span></div>
+      <div class="people" id="people"></div>
+    </div>
+    <div id="panel">
+      <div class="panel-empty" id="panel-empty">
+        <div class="big">🎧</div>
+        <div style="font-weight:700;color:var(--t2)">Pick someone to jam with</div>
+        <div style="font-size:12px;max-width:240px">Tap a friend to send them songs and chat. No friends yet? Hit <b style="color:var(--green)">Invite a friend</b> and share the link.</div>
+      </div>
+      <div id="panel-chat" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+        <div class="chat-hero">
+          <div class="ch-av" id="ch-av"></div>
+          <div><div class="ch-name" id="ch-name"></div><div class="ch-status" id="ch-status"></div></div>
+        </div>
+        <div class="tabbar">
+          <div class="tab on" onclick="setPane('send',this)">🎵 Send a song</div>
+          <div class="tab" onclick="setPane('chat',this)">💬 Chat</div>
+        </div>
+        <div class="pane on" id="pane-send">
+          <div class="search"><input type="text" id="song-search" placeholder="Search songs to send…" oninput="renderSongs(this.value)"/></div>
+          <div class="songs" id="songs"></div>
+        </div>
+        <div class="pane" id="pane-chat">
+          <div class="chat" id="chat"></div>
+          <div class="chatbar">
+            <input type="text" id="chat-input" placeholder="Message…" onkeydown="if(event.key==='Enter')sendMsg()"/>
+            <button onclick="sendMsg()"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M2 21 23 12 2 3l.01 7L17 12 2.01 14z"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- INVITE MODAL -->
+<div class="modal" id="invite-modal">
+  <div class="card" style="position:relative">
+    <button class="x" onclick="closeInvite()">✕</button>
+    <div class="logo" style="width:54px;height:54px">🤝</div>
+    <h1>Invite a friend</h1>
+    <p class="sub">Send this link to Simon (or anyone). When they open it and go live, you're connected — and can send songs both ways.</p>
+    <div class="linkrow"><input type="text" id="invite-link" readonly/><button onclick="copyInvite()">Copy</button></div>
+    <div class="sharegrid">
+      <div class="share" onclick="shareVia('WhatsApp')"><div class="ic" style="background:#25D366">💬</div><span class="lb">WhatsApp</span></div>
+      <div class="share" onclick="shareVia('Messages')"><div class="ic" style="background:#34C759">✉️</div><span class="lb">Messages</span></div>
+      <div class="share" onclick="shareVia('Instagram')"><div class="ic" style="background:linear-gradient(45deg,#F58529,#DD2A7B,#8134AF)">📸</div><span class="lb">Instagram</span></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"><span id="t-ico"></span><span id="t-msg"></span></div>
+
+<!-- Firebase SDK (loads only when config is present; harmless if offline) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="live.js"></script>
+</body>
+</html>
