@@ -50,6 +50,27 @@ const ACCESSORIES = [
   { id: 'beanie',  name: 'Beanie',      emoji: '🎿' },
 ];
 
+/* Hairstyles — each drawn as SVG (see hairstyleSVG). */
+const HAIRSTYLES = [
+  { id: 'short',    name: 'Short' },
+  { id: 'buzz',     name: 'Buzz cut' },
+  { id: 'wavy',     name: 'Wavy' },
+  { id: 'curly',    name: 'Curly' },
+  { id: 'bangs',    name: 'Bangs' },
+  { id: 'long',     name: 'Long' },
+  { id: 'bun',      name: 'Top bun' },
+  { id: 'ponytail', name: 'Ponytail' },
+  { id: 'bald',     name: 'Bald / shaved' },
+];
+
+/* Outfits — drawn with the chosen outfit color (see outfitSVG). */
+const OUTFITS = [
+  { id: 'tee',    name: 'T-shirt', emoji: '👕' },
+  { id: 'hoodie', name: 'Hoodie',  emoji: '🧥' },
+  { id: 'jacket', name: 'Leather', emoji: '🖤' },
+  { id: 'denim',  name: 'Denim',   emoji: '👖' },
+];
+
 /* Song catalog (mock). Album art from Spotify CDN. */
 const SONGS = [
   { name:'Blinding Lights',  artist:'The Weeknd',                     album:'After Hours',              dur:'3:59', art:'https://i.scdn.co/image/ab67616d0000b273b1c4b76e23414c9f20242268' },
@@ -76,12 +97,12 @@ const SONGS = [
 
 /* Friends. Each has their own avatar spec (skin, hair, shirt, phones). */
 const FRIENDS = [
-  { id:1, name:'Max',    city:'New York',  country:'USA',    flag:'🇺🇸', lat:40.71,  lng:-74.00,  ring:'#FF6B6B', online:true,  lastSeen:null,          skin:'#F5CFA0', hair:'#4a2c14', shirt:'#FF6B6B', phones:'beats',      acc:'cap',     track:'Blinding Lights', artist:'The Weeknd',   art:SONGS[0].art, unread:1 },
-  { id:2, name:'Sofia',  city:'Barcelona', country:'Spain',  flag:'🇪🇸', lat:41.38,  lng:2.17,    ring:'#9b59f7', online:true,  lastSeen:null,          skin:'#E8B98A', hair:'#1a1a1a', shirt:'#9b59f7', phones:'airpods',    acc:'shades',  track:'bad guy',         artist:'Billie Eilish',art:SONGS[1].art, unread:0 },
-  { id:3, name:'Jake',   city:'London',    country:'UK',     flag:'🇬🇧', lat:51.50,  lng:-0.12,   ring:'#4a90e2', online:true,  lastSeen:null,          skin:'#FFE0BD', hair:'#D4A017', shirt:'#4a90e2', phones:'sony',       acc:'none',    track:'As It Was',       artist:'Harry Styles', art:SONGS[2].art, unread:0 },
-  { id:4, name:'Mia',    city:'Tokyo',     country:'Japan',  flag:'🇯🇵', lat:35.68,  lng:139.69,  ring:'#FF69B4', online:true,  lastSeen:null,          skin:'#F5CFA0', hair:'#e8613c', shirt:'#FF69B4', phones:'airpodsmax', acc:'glasses', track:'Seven',           artist:'Jung Kook',    art:SONGS[8].art, unread:0 },
-  { id:5, name:'Carlos', city:'São Paulo', country:'Brazil', flag:'🇧🇷', lat:-23.55, lng:-46.63,  ring:'#2ACEA7', online:false, lastSeen:'20 min ago',  skin:'#C68642', hair:'#1a1a1a', shirt:'#2ACEA7', phones:'jbl',        acc:'none',    track:'Flowers',         artist:'Miley Cyrus',  art:SONGS[3].art, unread:0 },
-  { id:6, name:'Priya',  city:'Mumbai',    country:'India',  flag:'🇮🇳', lat:19.07,  lng:72.87,   ring:'#FFB800', online:false, lastSeen:'2 hours ago', skin:'#C68642', hair:'#1a1a1a', shirt:'#FFB800', phones:'galaxy',     acc:'none',    track:'Levitating',      artist:'Dua Lipa',     art:SONGS[5].art, unread:0 },
+  { id:1, name:'Max',    city:'New York',  country:'USA',    flag:'🇺🇸', lat:40.71,  lng:-74.00,  ring:'#FF6B6B', online:true,  lastSeen:null,          skin:'#F5CFA0', hair:'#4a2c14', hairstyle:'short',    shirt:'#3a3a3a', outfit:'jacket', phones:'beats',      acc:'none',    track:'Blinding Lights', artist:'The Weeknd',   art:SONGS[0].art, unread:1 },
+  { id:2, name:'Sofia',  city:'Barcelona', country:'Spain',  flag:'🇪🇸', lat:41.38,  lng:2.17,    ring:'#9b59f7', online:true,  lastSeen:null,          skin:'#E8B98A', hair:'#1a1a1a', hairstyle:'long',     shirt:'#2b2b2b', outfit:'jacket', phones:'airpods',    acc:'shades',  track:'bad guy',         artist:'Billie Eilish',art:SONGS[1].art, unread:0 },
+  { id:3, name:'Jake',   city:'London',    country:'UK',     flag:'🇬🇧', lat:51.50,  lng:-0.12,   ring:'#4a90e2', online:true,  lastSeen:null,          skin:'#FFE0BD', hair:'#D4A017', hairstyle:'buzz',     shirt:'#ffffff', outfit:'tee',    phones:'sony',       acc:'none',    track:'As It Was',       artist:'Harry Styles', art:SONGS[2].art, unread:0 },
+  { id:4, name:'Mia',    city:'Tokyo',     country:'Japan',  flag:'🇯🇵', lat:35.68,  lng:139.69,  ring:'#FF69B4', online:true,  lastSeen:null,          skin:'#F5CFA0', hair:'#e8613c', hairstyle:'bangs',    shirt:'#8fb6e8', outfit:'denim',  phones:'airpodsmax', acc:'glasses', track:'Seven',           artist:'Jung Kook',    art:SONGS[8].art, unread:0 },
+  { id:5, name:'Carlos', city:'São Paulo', country:'Brazil', flag:'🇧🇷', lat:-23.55, lng:-46.63,  ring:'#2ACEA7', online:false, lastSeen:'20 min ago',  skin:'#8D5524', hair:'#1a1a1a', hairstyle:'curly',    shirt:'#2ACEA7', outfit:'hoodie', phones:'jbl',        acc:'none',    track:'Flowers',         artist:'Miley Cyrus',  art:SONGS[3].art, unread:0 },
+  { id:6, name:'Priya',  city:'Mumbai',    country:'India',  flag:'🇮🇳', lat:19.07,  lng:72.87,   ring:'#FFB800', online:false, lastSeen:'2 hours ago', skin:'#C68642', hair:'#1a1a1a', hairstyle:'ponytail', shirt:'#8fb6e8', outfit:'denim',  phones:'galaxy',     acc:'none',    track:'Levitating',      artist:'Dua Lipa',     art:SONGS[5].art, unread:0 },
 ];
 
 /* Chat history keyed by friend id */
@@ -119,10 +140,10 @@ const ACTIVITY = [
 
 /* People you might know (Add Friend > Find) */
 const SUGGESTED = [
-  { name:'Emma', sub:'@emma_beats · 3 mutual',    skin:'#FFE0BD', hair:'#8B5A2B', shirt:'#ff69b4', phones:'airpods' },
-  { name:'Leo',  sub:'@leo.wav · 7 mutual',       skin:'#C68642', hair:'#1a1a1a', shirt:'#4a90e2', phones:'sony' },
-  { name:'Nina', sub:'@ninatunes · 1 mutual',     skin:'#F5CFA0', hair:'#9b59f7', shirt:'#9b59f7', phones:'beats' },
-  { name:'Omar', sub:'@omar_g · 12 mutual',       skin:'#8D5524', hair:'#1a1a1a', shirt:'#ffb800', phones:'galaxy' },
+  { name:'Emma', sub:'@emma_beats · 3 mutual',    skin:'#FFE0BD', hair:'#8B5A2B', hairstyle:'wavy',  shirt:'#ff69b4', outfit:'hoodie', phones:'airpods' },
+  { name:'Leo',  sub:'@leo.wav · 7 mutual',       skin:'#C68642', hair:'#1a1a1a', hairstyle:'short', shirt:'#4a90e2', outfit:'tee',    phones:'sony' },
+  { name:'Nina', sub:'@ninatunes · 1 mutual',     skin:'#F5CFA0', hair:'#9b59f7', hairstyle:'bun',   shirt:'#9b59f7', outfit:'jacket', phones:'beats' },
+  { name:'Omar', sub:'@omar_g · 12 mutual',       skin:'#8D5524', hair:'#1a1a1a', hairstyle:'curly', shirt:'#ffb800', outfit:'denim',  phones:'galaxy' },
 ];
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -133,7 +154,9 @@ const ME = {
   name: 'Alec',
   skin: SKIN_TONES[0],
   hair: HAIR_COLORS[0],
+  hairstyle: 'short',
   shirt: SHIRT_COLORS[0],
+  outfit: 'tee',
   phones: 'airpods',
   acc: 'none',
   city: 'Paris',
@@ -214,44 +237,155 @@ function accessorySVG(acc, skin) {
   }
 }
 
+/* Darken/lighten a hex color by pct (-1..1). Used for shading. */
+function shade(hex, pct) {
+  hex = (hex || '#000').replace('#', '');
+  if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+  let r = parseInt(hex.slice(0, 2), 16), g = parseInt(hex.slice(2, 4), 16), b = parseInt(hex.slice(4, 6), 16);
+  const f = 1 + pct;
+  r = Math.max(0, Math.min(255, Math.round(r * f)));
+  g = Math.max(0, Math.min(255, Math.round(g * f)));
+  b = Math.max(0, Math.min(255, Math.round(b * f)));
+  return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+}
+
+/* Hair: returns { back, front } SVG layers for a given style + color.
+   'back' renders behind the head/shoulders; 'front' over the forehead. */
+function hairstyleSVG(style, hair) {
+  const hl = shade(hair, 0.35);   // highlight
+  const dk = shade(hair, -0.3);   // shadow
+  const strand = `<path d="M40 30 Q50 27 60 30" stroke="${hl}" stroke-width="1.6" fill="none" stroke-linecap="round" opacity=".6"/>`;
+  switch (style) {
+    case 'bald':
+      return { back: '', front: `<path d="M31 42 Q33 30 50 29 Q67 30 69 42 Q60 38 50 38 Q40 38 31 42 Z" fill="${hair}" opacity=".25"/>` };
+    case 'buzz':
+      return { back: '', front:
+        `<path d="M31 45 Q31 26 50 26 Q69 26 69 45 Q62 37 50 36.5 Q38 37 31 45 Z" fill="${hair}"/>
+         <path d="M31 45 Q31 26 50 26 Q69 26 69 45" fill="none" stroke="${dk}" stroke-width="1" opacity=".4"/>` };
+    case 'short':
+      return { back: '', front:
+        `<path d="M28 46 Q27 23 50 23 Q73 23 72 46 Q66 32 50 31 Q34 32 28 46 Z" fill="${hair}"/>
+         <path d="M28 46 Q26 36 31 29 Q30 41 34 44 Z" fill="${hair}"/>
+         <path d="M72 46 Q74 36 69 29 Q70 41 66 44 Z" fill="${hair}"/>${strand}` };
+    case 'wavy':
+      return { back: '', front:
+        `<path d="M27 48 Q26 22 50 22 Q74 22 73 48 Q71 40 66 34 Q63 42 57 34 Q54 42 50 33 Q46 42 43 34 Q37 42 34 34 Q29 40 27 48 Z" fill="${hair}"/>${strand}` };
+    case 'curly':
+      return { back:
+        `<g fill="${hair}"><circle cx="30" cy="46" r="8"/><circle cx="70" cy="46" r="8"/></g>`, front:
+        `<g fill="${hair}"><circle cx="34" cy="34" r="10"/><circle cx="47" cy="28" r="11"/><circle cx="60" cy="31" r="10"/><circle cx="30" cy="42" r="8"/><circle cx="70" cy="42" r="8"/></g>
+         <g fill="${hl}" opacity=".5"><circle cx="45" cy="26" r="3"/><circle cx="58" cy="29" r="2.5"/></g>` };
+    case 'bangs':
+      return { back:
+        `<path d="M27 44 Q27 46 28 56 L34 56 L34 44 Z" fill="${hair}"/><path d="M73 44 Q73 46 72 56 L66 56 L66 44 Z" fill="${hair}"/>`, front:
+        `<path d="M27 47 Q27 22 50 22 Q73 22 73 47 Q73 45 68 44 L64 44 Q62 45 59 44 L55 44 Q52 45 49 44 L45 44 Q42 45 39 44 L35 44 Q30 45 27 47 Z" fill="${hair}"/>${strand}` };
+    case 'long':
+      return { back:
+        `<path d="M25 44 Q25 20 50 20 Q75 20 75 44 L75 76 Q75 82 68 83 L62 60 L62 46 L38 46 L38 60 L32 83 Q25 82 25 76 Z" fill="${hair}"/>
+         <path d="M25 44 L38 44 L38 62 L30 62 Z" fill="${dk}" opacity=".5"/>
+         <path d="M75 44 L62 44 L62 62 L70 62 Z" fill="${dk}" opacity=".5"/>`, front:
+        `<path d="M27 47 Q27 21 50 21 Q73 21 73 47 Q69 31 50 30 Q31 31 27 47 Z" fill="${hair}"/>
+         <path d="M50 30 Q49 40 46 47 M50 30 Q51 40 54 47" stroke="${dk}" stroke-width="1" opacity=".3" fill="none"/>${strand}` };
+    case 'bun':
+      return { back:
+        `<circle cx="50" cy="19" r="8" fill="${hair}"/><ellipse cx="50" cy="19" rx="8" ry="8" fill="${hl}" opacity=".25"/>`, front:
+        `<path d="M29 45 Q29 24 50 24 Q71 24 71 45 Q64 33 50 32.5 Q36 33 29 45 Z" fill="${hair}"/>
+         <path d="M42 25 Q50 21 58 25" stroke="${dk}" stroke-width="1.2" fill="none" opacity=".4"/>${strand}` };
+    case 'ponytail':
+      return { back:
+        `<path d="M67 32 Q84 38 82 58 Q81 68 74 70 Q80 58 75 47 Q71 39 65 39 Z" fill="${hair}"/>
+         <path d="M69 40 Q76 46 74 58" stroke="${dk}" stroke-width="1.2" fill="none" opacity=".4"/>`, front:
+        `<path d="M29 45 Q29 24 50 24 Q71 24 71 45 Q64 33 50 32.5 Q36 33 29 45 Z" fill="${hair}"/>${strand}` };
+    default:
+      return { back: '', front: `<path d="M28 46 Q27 23 50 23 Q73 23 72 46 Q66 32 50 31 Q34 32 28 46 Z" fill="${hair}"/>` };
+  }
+}
+
+/* Outfit: shoulders/torso drawn with the chosen color + brand-ish details. */
+function outfitSVG(outfit, color) {
+  const dk = shade(color, -0.28), dk2 = shade(color, -0.45), lt = shade(color, 0.25);
+  const base = `<path d="M15 100 Q15 73 50 72 Q85 73 85 100 Z" fill="${color}"/>`;
+  switch (outfit) {
+    case 'hoodie':
+      return `${base}
+        <path d="M34 74 Q50 68 66 74 Q60 86 50 86 Q40 86 34 74 Z" fill="${dk}"/>
+        <path d="M46 80 L46 96 M54 80 L54 96" stroke="${dk2}" stroke-width="1.5"/>
+        <circle cx="46" cy="97" r="1.6" fill="${lt}"/><circle cx="54" cy="97" r="1.6" fill="${lt}"/>
+        <rect x="30" y="90" width="40" height="10" fill="${dk}" opacity=".5"/>`;
+    case 'jacket':
+      return `<path d="M15 100 Q15 73 50 72 Q85 73 85 100 Z" fill="${shade(color, -0.15)}"/>
+        <path d="M50 72 L40 100 L34 100 Q32 84 40 74 Z" fill="${dk2}"/>
+        <path d="M50 72 L60 100 L66 100 Q68 84 60 74 Z" fill="${dk2}"/>
+        <path d="M48 74 L48 100 L52 100 L52 74 Z" fill="${dk}"/>
+        <path d="M49.5 78 L49.5 98" stroke="${lt}" stroke-width="1" opacity=".6"/>
+        <circle cx="41" cy="90" r="1.4" fill="${lt}"/><circle cx="59" cy="90" r="1.4" fill="${lt}"/>`;
+    case 'denim':
+      return `${base}
+        <path d="M50 72 L42 100 L36 100 Q35 85 41 74 Z" fill="${dk}"/>
+        <path d="M50 72 L58 100 L64 100 Q65 85 59 74 Z" fill="${dk}"/>
+        <path d="M48 74 L48 100 L52 100 L52 74 Z" fill="${dk2}"/>
+        <path d="M39 82 L44 84 M61 82 L56 84" stroke="${dk2}" stroke-width="1.2" stroke-dasharray="2 2"/>
+        <circle cx="41" cy="92" r="1.3" fill="${lt}"/><circle cx="59" cy="92" r="1.3" fill="${lt}"/>`;
+    default: // tee
+      return `${base}
+        <path d="M40 73 Q50 80 60 73" fill="none" stroke="${dk}" stroke-width="2" stroke-linecap="round"/>
+        <path d="M20 82 Q18 90 17 98" stroke="${dk}" stroke-width="1" opacity=".3" fill="none"/>`;
+  }
+}
+
 /* Returns a full SVG string for a character. */
 function avatarSVG(spec) {
-  const skin = spec.skin, hair = spec.hair, shirt = spec.shirt;
-  const showHairTop = !(spec.acc === 'cap' || spec.acc === 'beanie');
+  const skin = spec.skin, hair = spec.hair, color = spec.shirt;
+  const style = spec.hairstyle || 'short';
+  const outfit = spec.outfit || 'tee';
+  const uid = spec._uid || 'x';
+  const wig = hairstyleSVG(style, hair);
+  const hatOn = (spec.acc === 'cap' || spec.acc === 'beanie');
+  const skinShadow = shade(skin, -0.14);
+  const blush = shade(skin, -0.05);
+  const browColor = shade(hair, -0.15);
   return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <clipPath id="clip-${spec._uid || 'x'}"><circle cx="50" cy="50" r="50"/></clipPath>
-    </defs>
-    <g clip-path="url(#clip-${spec._uid || 'x'})">
-      <rect width="100" height="100" fill="#181818"/>
-      <circle cx="50" cy="50" r="50" fill="#202020"/>
-      <!-- shoulders / shirt -->
-      <path d="M18 100 Q18 74 50 74 Q82 74 82 100 Z" fill="${shirt}"/>
-      <path d="M42 72 h16 v8 q-8 5 -16 0 Z" fill="${skin}"/>
-      <!-- neck -->
-      <rect x="43" y="64" width="14" height="12" rx="5" fill="${skin}"/>
-      <!-- head -->
-      <ellipse cx="50" cy="48" rx="21" ry="23" fill="${skin}"/>
+    <defs><clipPath id="clip-${uid}"><circle cx="50" cy="50" r="50"/></clipPath></defs>
+    <g clip-path="url(#clip-${uid})">
+      <rect width="100" height="100" fill="#1c1c1c"/>
+      <circle cx="50" cy="50" r="50" fill="#242424"/>
+      <!-- back hair (long/curly/bun/ponytail) -->
+      ${hatOn ? '' : wig.back}
+      <!-- outfit -->
+      ${outfitSVG(outfit, color)}
+      <!-- neck + shadow -->
+      <path d="M43 62 h14 v10 q-7 4 -14 0 Z" fill="${skin}"/>
+      <path d="M43 63 q7 5 14 0 v3 q-7 4 -14 0 Z" fill="${skinShadow}" opacity=".6"/>
       <!-- ears -->
-      <circle cx="29" cy="50" r="4.5" fill="${skin}"/>
-      <circle cx="71" cy="50" r="4.5" fill="${skin}"/>
-      <!-- hair (top) -->
-      ${showHairTop ? `<path d="M28 44 Q28 24 50 24 Q72 24 72 44 Q72 34 50 33 Q28 34 28 44 Z" fill="${hair}"/>
-      <path d="M28 44 Q26 34 32 28 Q30 40 34 42 Z" fill="${hair}"/>
-      <path d="M72 44 Q74 34 68 28 Q70 40 66 42 Z" fill="${hair}"/>` : ''}
-      <!-- eyes -->
-      <circle cx="42" cy="49" r="2.6" fill="#2a2a2a"/>
-      <circle cx="58" cy="49" r="2.6" fill="#2a2a2a"/>
-      <circle cx="42.8" cy="48.2" r=".9" fill="#fff"/>
-      <circle cx="58.8" cy="48.2" r=".9" fill="#fff"/>
-      <!-- brows -->
-      <path d="M38 44 q4 -2 8 0" stroke="${hair}" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-      <path d="M54 44 q4 -2 8 0" stroke="${hair}" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+      <circle cx="29.5" cy="49" r="5" fill="${skin}"/><circle cx="70.5" cy="49" r="5" fill="${skin}"/>
+      <circle cx="29.5" cy="49" r="2" fill="${skinShadow}" opacity=".5"/><circle cx="70.5" cy="49" r="2" fill="${skinShadow}" opacity=".5"/>
+      <!-- head -->
+      <path d="M30 44 Q30 22 50 22 Q70 22 70 44 Q70 60 60 66 Q55 69 50 69 Q45 69 40 66 Q30 60 30 44 Z" fill="${skin}"/>
+      <!-- cheeks blush -->
+      <ellipse cx="37" cy="55" rx="4" ry="2.6" fill="#ff8f7a" opacity=".22"/>
+      <ellipse cx="63" cy="55" rx="4" ry="2.6" fill="#ff8f7a" opacity=".22"/>
+      <!-- eyebrows -->
+      <path d="M37 43 Q42 40.5 47 43" stroke="${browColor}" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <path d="M53 43 Q58 40.5 63 43" stroke="${browColor}" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <!-- eyes: white, iris, pupil, highlight -->
+      <ellipse cx="42" cy="49" rx="3.6" ry="4.2" fill="#fff"/>
+      <ellipse cx="58" cy="49" rx="3.6" ry="4.2" fill="#fff"/>
+      <circle cx="42.3" cy="49.4" r="2.5" fill="${shade(hair, 0.1)}"/>
+      <circle cx="58.3" cy="49.4" r="2.5" fill="${shade(hair, 0.1)}"/>
+      <circle cx="42.3" cy="49.4" r="1.3" fill="#171717"/>
+      <circle cx="58.3" cy="49.4" r="1.3" fill="#171717"/>
+      <circle cx="43.3" cy="48.2" r=".9" fill="#fff"/>
+      <circle cx="59.3" cy="48.2" r=".9" fill="#fff"/>
+      <!-- nose -->
+      <path d="M50 51 Q48.4 55 50 56.2" stroke="${skinShadow}" stroke-width="1.4" fill="none" stroke-linecap="round" opacity=".7"/>
       <!-- smile -->
-      <path d="M43 58 q7 6 14 0" stroke="#b3654a" stroke-width="2" fill="none" stroke-linecap="round"/>
-      <!-- accessory (glasses/shades/hat) -->
+      <path d="M43 59.5 Q50 65 57 59.5" stroke="#a8503b" stroke-width="2.1" fill="none" stroke-linecap="round"/>
+      <path d="M45 61 Q50 63.5 55 61" fill="#fff" opacity=".85"/>
+      <!-- front hair -->
+      ${hatOn ? '' : wig.front}
+      <!-- accessory -->
       ${accessorySVG(spec.acc, skin)}
-      <!-- headphones on top -->
+      <!-- headphones -->
       ${headphoneSVG(spec.phones)}
     </g>
   </svg>`;
@@ -283,6 +417,14 @@ function buildBuilderControls() {
   document.getElementById('opt-hair').innerHTML  = HAIR_COLORS.map(c  => swatchHTML(c, 'hair')).join('');
   document.getElementById('opt-shirt').innerHTML = SHIRT_COLORS.map(c => swatchHTML(c, 'shirt')).join('');
 
+  buildHairstyleTiles();
+
+  document.getElementById('opt-outfit').innerHTML = OUTFITS.map(o => `
+    <button class="tile ${ME.outfit === o.id ? 'sel' : ''}" data-outfit="${o.id}" onclick="pickOutfit('${o.id}',this)">
+      <div class="tile-ico" style="font-size:20px">${o.emoji}</div>
+      <div class="tile-txt"><div class="tile-name">${o.name}</div></div>
+    </button>`).join('');
+
   document.getElementById('opt-phones').innerHTML = HEADPHONES.map(h => `
     <button class="tile ${ME.phones === h.id ? 'sel' : ''}" data-phones="${h.id}" onclick="pickPhones('${h.id}',this)">
       <div class="tile-ico">${miniPhoneIcon(h)}</div>
@@ -294,6 +436,17 @@ function buildBuilderControls() {
       <div class="tile-ico" style="font-size:22px">${a.emoji || '🚫'}</div>
       <div class="tile-txt"><div class="tile-name">${a.name}</div></div>
     </button>`).join('');
+}
+
+/* Hairstyle tiles show a live mini face preview using the current colors. */
+function buildHairstyleTiles() {
+  document.getElementById('opt-hairstyle').innerHTML = HAIRSTYLES.map(hs => {
+    const preview = renderAvatar({ skin: ME.skin, hair: ME.hair, hairstyle: hs.id, outfit: 'tee', shirt: '#333', phones: 'none', acc: 'none' });
+    return `<button class="tile ${ME.hairstyle === hs.id ? 'sel' : ''}" data-hairstyle="${hs.id}" onclick="pickHairstyle('${hs.id}',this)">
+      <div class="tile-ico" style="width:38px;height:38px">${preview}</div>
+      <div class="tile-txt"><div class="tile-name">${hs.name}</div></div>
+    </button>`;
+  }).join('');
 }
 
 function swatchHTML(color, kind) {
@@ -316,6 +469,20 @@ function miniPhoneIcon(h) {
 function pickSwatch(kind, color, el) {
   ME[kind] = color;
   el.parentElement.querySelectorAll('.swatch').forEach(s => s.classList.remove('sel'));
+  el.classList.add('sel');
+  // keep the hairstyle mini-previews in sync with skin/hair color changes
+  if (kind === 'skin' || kind === 'hair') buildHairstyleTiles();
+  renderAvatarPreview();
+}
+function pickHairstyle(id, el) {
+  ME.hairstyle = id;
+  document.querySelectorAll('#opt-hairstyle .tile').forEach(t => t.classList.remove('sel'));
+  el.classList.add('sel');
+  renderAvatarPreview();
+}
+function pickOutfit(id, el) {
+  ME.outfit = id;
+  document.querySelectorAll('#opt-outfit .tile').forEach(t => t.classList.remove('sel'));
   el.classList.add('sel');
   renderAvatarPreview();
 }
@@ -341,9 +508,11 @@ function randomizeAvatar() {
   const pick = arr => arr[Math.floor(Math.random() * arr.length)];
   ME.skin = pick(SKIN_TONES);
   ME.hair = pick(HAIR_COLORS);
+  ME.hairstyle = pick(HAIRSTYLES).id;
   ME.shirt = pick(SHIRT_COLORS);
+  ME.outfit = pick(OUTFITS).id;
   ME.phones = pick(HEADPHONES.filter(h => h.type !== 'none')).id;
-  ME.acc = pick(ACCESSORIES).id;
+  ME.acc = pick(ACCESSORIES.filter(a => a.id === 'none' || Math.random() > 0.5)).id;
   buildBuilderControls();
   renderAvatarPreview();
 }
