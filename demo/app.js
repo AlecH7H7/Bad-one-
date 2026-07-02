@@ -20,8 +20,8 @@
    ═══════════════════════════════════════════════════════════════════ */
 
 const SKIN_TONES = ['#FFE0BD', '#F5CFA0', '#E8B98A', '#C68642', '#8D5524', '#5C3A21'];
-const HAIR_COLORS = ['#1a1a1a', '#4a2c14', '#8B5A2B', '#D4A017', '#C0C0C0', '#E8613C', '#9b59f7'];
-const SHIRT_COLORS = ['#1DB954', '#e22134', '#4a90e2', '#9b59f7', '#ffb800', '#ff69b4', '#ffffff', '#282828'];
+const HAIR_COLORS = ['#1a1a1a', '#4a2c14', '#8B5A2B', '#D4A017', '#C0C0C0', '#E8613C', '#9b59f7', '#e84393', '#00b894'];
+const SHIRT_COLORS = ['#1DB954', '#e22134', '#4a90e2', '#9b59f7', '#ffb800', '#ff69b4', '#ffffff', '#282828', '#00cec9', '#fd79a8'];
 
 /* Headphone styles — each is a small SVG-drawing spec.
    type: 'over' (over-ear cans), 'buds' (earbuds w/ stem), 'clip' (bone-conduction) */
@@ -33,6 +33,9 @@ const HEADPHONES = [
   { id: 'sony',       name: 'Sony WH-1000',  sub: 'Sony',        type: 'over', color: '#1a1a1a', accent: '#000000' },
   { id: 'bose',       name: 'Bose QC',       sub: 'Bose',        type: 'over', color: '#2b3a55', accent: '#1e2a3f' },
   { id: 'jbl',        name: 'JBL Tune',      sub: 'JBL',         type: 'over', color: '#ff6600', accent: '#cc5200' },
+  { id: 'marshall',   name: 'Marshall',      sub: 'Marshall',    type: 'over', color: '#1a1a1a', accent: '#d4af37' },
+  { id: 'sennheiser', name: 'Sennheiser',    sub: 'Sennheiser',  type: 'over', color: '#0a2540', accent: '#c9a227' },
+  { id: 'skullcandy', name: 'Skullcandy',    sub: 'Skullcandy',  type: 'buds', color: '#00d2ff', accent: '#0096b3' },
   { id: 'galaxy',     name: 'Galaxy Buds',   sub: 'Samsung',     type: 'buds', color: '#7b4fd4', accent: '#5f3ba8' },
   { id: 'shokz',      name: 'Shokz OpenRun', sub: 'Bone-conduct',type: 'clip', color: '#00c2b8', accent: '#009c94' },
   { id: 'none',       name: 'No headphones', sub: 'Speaker mode',type: 'none', color: '#000',    accent: '#000' },
@@ -264,7 +267,9 @@ function renderAvatar(spec) {
    3. CHARACTER BUILDER
    ═══════════════════════════════════════════════════════════════════ */
 
-function goToBuilder() {
+let _wantTour = false;
+function goToBuilder(wantTour) {
+  _wantTour = !!wantTour;
   document.getElementById('welcome').classList.add('gone');
   setTimeout(() => {
     document.getElementById('builder').classList.add('show');
@@ -374,6 +379,12 @@ function bootApp() {
   buildSuggested();
   updateOnlineCount();
   if (!map) initMap();
+
+  // If the user chose the guided tour, launch it instead of demo popups
+  if (_wantTour) {
+    setTimeout(startTour, 600);
+    return;
+  }
 
   // demo notifications trickling in
   setTimeout(() => pushNotif('🎵', 'New queue request', 'Max added "Blinding Lights" to your queue'), 1600);
@@ -843,6 +854,177 @@ function toggleHeart(btn) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════
+   GUIDED TOUR
+   Spotlights each feature with a tooltip card. Some steps run an action
+   (open a friend, switch tab) so the viewer sees the flow live.
+   ═══════════════════════════════════════════════════════════════════ */
+
+const TOUR_STEPS = [
+  {
+    target: '#mapwrap',
+    title: 'A world map of your friends 🗺️',
+    text: 'Just like Snap Map — every friend appears as their own character, wherever they are. Green pulse + music bars means they\'re <b>listening right now</b>.',
+    placement: 'center',
+  },
+  {
+    target: '#sidebar',
+    title: 'Who\'s online 🎧',
+    text: 'See exactly what each friend is playing in real time. Offline friends show their <b>last-seen</b> time instead.',
+    placement: 'right',
+  },
+  {
+    before: () => { openSheet(1); },
+    wait: 700,
+    target: '#sheet',
+    title: 'Tap a friend to open them',
+    text: 'This is <b>Max</b>, listening in New York. From here you can send songs, chat, or listen together.',
+    placement: 'above',
+  },
+  {
+    target: '#tracks-list',
+    title: 'Swipe a song into their queue 🎵',
+    text: 'Search 80M+ tracks, then <b>swipe any song left</b> — it drops straight into their Spotify queue and pops up in your chat.',
+    placement: 'above',
+    demoSwipe: true,
+  },
+  {
+    before: () => { const t = document.querySelector('.sh-tab:nth-child(2)'); if (t) setSheetTab('chat', t); },
+    wait: 400,
+    target: '#sh-panel-chat',
+    title: 'Chat & share 💬',
+    text: 'Private chat with each friend. Shared songs show up as playable cards — tap play to preview.',
+    placement: 'above',
+  },
+  {
+    before: () => { const t = document.querySelector('.sh-tab'); if (t) setSheetTab('send', t); },
+    target: '#lt-btn',
+    title: 'Listen together 🎶',
+    text: 'Hit this to <b>sync playback in real time</b> — you both hear the same song at the same second, no matter the distance.',
+    placement: 'above',
+  },
+  {
+    before: () => { closeSheet(); },
+    wait: 400,
+    target: '.add-friend-btn',
+    title: 'Bring your friends in 🤝',
+    text: 'Invite by link, or import from <b>WhatsApp, Snapchat, Instagram</b> & contacts. Imagine your whole Snap friend list, on the map.',
+    placement: 'right',
+  },
+  {
+    before: () => { document.getElementById('map')?.scrollIntoView(); },
+    target: '.user-chip',
+    title: 'That\'s Spotify Jam Map ✨',
+    text: 'Your character, your headphones, your friends, your music — all in one social map. Tap around and explore!',
+    placement: 'below',
+  },
+];
+
+let tourIdx = 0;
+
+function startTour() {
+  // must be inside the app
+  if (!document.getElementById('app').classList.contains('show')) return;
+  closeSheet();
+  ['blk-modal', 'lt-modal', 'af-modal', 'prof-modal', 'nc-modal'].forEach(closeModal);
+  tourIdx = 0;
+  document.getElementById('tour').classList.add('on');
+  buildTourDots();
+  showTourStep();
+}
+
+function buildTourDots() {
+  document.getElementById('tour-dots').innerHTML =
+    TOUR_STEPS.map((_, i) => `<div class="tour-dot ${i === tourIdx ? 'on' : ''}"></div>`).join('');
+}
+
+function showTourStep() {
+  const step = TOUR_STEPS[tourIdx];
+  if (!step) { endTour(); return; }
+
+  const run = () => {
+    // demo an actual swipe so the viewer sees the queue animation
+    if (step.demoSwipe) setTimeout(demoSwipe, 500);
+    positionTour(step);
+  };
+
+  if (step.before) { step.before(); setTimeout(run, step.wait || 350); }
+  else run();
+
+  document.getElementById('tour-badge').textContent = `✨ STEP ${tourIdx + 1} / ${TOUR_STEPS.length}`;
+  document.getElementById('tour-title').innerHTML = step.title;
+  document.getElementById('tour-text').innerHTML = step.text;
+  document.getElementById('tour-next').textContent = tourIdx === TOUR_STEPS.length - 1 ? 'Finish ✓' : 'Next →';
+  buildTourDots();
+}
+
+function positionTour(step) {
+  const el = document.querySelector(step.target);
+  const spot = document.getElementById('tour-spot');
+  const card = document.getElementById('tour-card');
+  if (!el) { // fallback: center card, hide spotlight
+    spot.style.opacity = '0';
+    card.style.left = '50%'; card.style.top = '50%';
+    card.style.transform = 'translate(-50%,-50%)';
+    return;
+  }
+  spot.style.opacity = '1';
+  const r = el.getBoundingClientRect();
+  const pad = 8;
+  spot.style.left = (r.left - pad) + 'px';
+  spot.style.top = (r.top - pad) + 'px';
+  spot.style.width = (r.width + pad * 2) + 'px';
+  spot.style.height = (r.height + pad * 2) + 'px';
+
+  // place card relative to spotlight, clamped to viewport
+  const cw = 300, ch = card.offsetHeight || 190, gap = 18;
+  let left, top;
+  const place = step.placement || 'below';
+  if (place === 'center') { left = (window.innerWidth - cw) / 2; top = (window.innerHeight - ch) / 2; }
+  else if (place === 'right') { left = r.right + gap; top = r.top; }
+  else if (place === 'above') { left = r.left + r.width / 2 - cw / 2; top = r.top - ch - gap; }
+  else if (place === 'below') { left = r.left + r.width / 2 - cw / 2; top = r.bottom + gap; }
+  else { left = r.left; top = r.bottom + gap; }
+
+  left = Math.max(16, Math.min(left, window.innerWidth - cw - 16));
+  top = Math.max(16, Math.min(top, window.innerHeight - ch - 16));
+  card.style.transform = 'none';
+  card.style.left = left + 'px';
+  card.style.top = top + 'px';
+}
+
+/* Programmatic swipe animation on the first track row (tour demo) */
+function demoSwipe() {
+  const ti = document.getElementById('ti0'), tbg = document.getElementById('tbg0');
+  if (!ti || !tbg) return;
+  ti.style.transition = 'transform .5s cubic-bezier(.32,.72,0,1)';
+  tbg.style.transition = 'width .5s,opacity .4s';
+  tbg.style.width = '150px'; tbg.style.opacity = '1';
+  ti.style.transform = 'translateX(-150px)';
+  setTimeout(() => {
+    if (visSongs[0] && curFriend) toast('🎵', `"${visSongs[0].name}" sent to ${curFriend.name}'s queue!`);
+    ti.style.transform = 'translateX(0)';
+    tbg.style.width = '0'; tbg.style.opacity = '0';
+  }, 900);
+}
+
+function tourNext() {
+  tourIdx++;
+  if (tourIdx >= TOUR_STEPS.length) { endTour(); return; }
+  showTourStep();
+}
+
+function endTour() {
+  document.getElementById('tour').classList.remove('on');
+  closeSheet();
+  toast('✨', 'Tour complete — explore freely!');
+}
+
+// keep spotlight aligned if the window resizes mid-tour
+window.addEventListener('resize', () => {
+  if (document.getElementById('tour').classList.contains('on')) positionTour(TOUR_STEPS[tourIdx]);
+});
+
+/* ═══════════════════════════════════════════════════════════════════
    9. HELPERS + KEYBOARD + INIT
    ═══════════════════════════════════════════════════════════════════ */
 function nowTime() {
@@ -861,6 +1043,7 @@ document.addEventListener('keydown', e => {
     if (e.code === 'ArrowLeft') prevTrack();
   }
   if (e.code === 'Escape') {
+    if (document.getElementById('tour').classList.contains('on')) { endTour(); return; }
     closeSheet();
     ['blk-modal', 'lt-modal', 'af-modal', 'prof-modal', 'nc-modal'].forEach(closeModal);
   }

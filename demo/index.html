@@ -525,6 +525,29 @@ img{display:block}
 .nc-msg strong{color:var(--t1);font-weight:700}
 .nc-time{font-size:10px;color:var(--t3);margin-top:2px}
 
+/* ════════════════════════════════════════════════════
+   GUIDED TOUR
+   ════════════════════════════════════════════════════ */
+#tour{position:fixed;inset:0;z-index:1500;display:none;pointer-events:none}
+#tour.on{display:block}
+#tour-spot{position:absolute;border-radius:16px;box-shadow:0 0 0 9999px rgba(0,0,0,.78),0 0 0 3px var(--green),0 0 30px var(--gglow);transition:all .4s cubic-bezier(.32,.72,0,1);pointer-events:none}
+#tour-card{position:absolute;width:300px;background:linear-gradient(180deg,#1e1e1e,#141414);border:1px solid var(--bdr2);border-radius:18px;padding:20px;box-shadow:var(--shadow);pointer-events:all;transition:all .4s cubic-bezier(.32,.72,0,1)}
+.tour-step-badge{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:800;letter-spacing:.6px;color:var(--green);background:var(--gdim);border:1px solid rgba(29,185,84,.25);padding:4px 10px;border-radius:500px;margin-bottom:12px}
+#tour-title{font-size:17px;font-weight:900;letter-spacing:-.3px;margin-bottom:7px}
+#tour-text{font-size:13px;color:var(--t2);line-height:1.55}
+#tour-text b{color:var(--green)}
+.tour-foot{display:flex;align-items:center;justify-content:space-between;margin-top:18px;gap:10px}
+.tour-dots{display:flex;gap:5px}
+.tour-dot{width:6px;height:6px;border-radius:50%;background:var(--surf3);transition:all .2s}
+.tour-dot.on{background:var(--green);width:18px;border-radius:3px}
+.tour-next{padding:9px 20px;border-radius:500px;background:var(--green);color:#000;font-size:13px;font-weight:800;transition:all .15s}
+.tour-next:hover{background:var(--green2);transform:scale(1.04)}
+.tour-skip{position:fixed;top:20px;right:24px;z-index:1600;pointer-events:all;font-size:12px;font-weight:600;color:var(--t2);background:rgba(0,0,0,.6);border:1px solid var(--bdr);border-radius:500px;padding:8px 16px;backdrop-filter:blur(10px);display:none}
+#tour.on .tour-skip{display:block}
+.tour-skip:hover{color:var(--t1)}
+.w-tour-link{margin-top:14px;z-index:2;position:relative;font-size:13px;font-weight:600;color:var(--t2);text-decoration:underline;text-underline-offset:3px;animation:slideup .6s .5s both}
+.w-tour-link:hover{color:var(--green)}
+
 /* Responsive-ish */
 @media (max-width:900px){
   #sidebar{width:240px}
@@ -561,6 +584,7 @@ img{display:block}
     Continue with Spotify
   </button>
   <p class="w-sub"><b>Concept demo</b> · No real login — just tap to explore</p>
+  <a class="w-tour-link" onclick="goToBuilder(true)">✨ Or take the 30-second guided tour →</a>
 </div>
 
 <!-- ══════════ SCREEN 2: CHARACTER BUILDER ══════════ -->
@@ -635,6 +659,9 @@ img{display:block}
       <input type="text" placeholder="Search songs, artists, or friends…"/>
     </div>
     <div class="hdr-right">
+      <button class="hdr-icobtn" onclick="startTour()" title="Take a tour" style="width:auto;padding:0 14px;gap:6px;font-size:12px;font-weight:700">
+        <span>✨</span> Tour
+      </button>
       <button class="hdr-icobtn" onclick="openNotifCenter()" title="Notifications">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22a2.5 2.5 0 002.45-2h-4.9A2.5 2.5 0 0012 22zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4a1.5 1.5 0 00-3 0v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
         <span class="hdr-badge" id="notif-badge">3</span>
@@ -894,6 +921,21 @@ img{display:block}
     <div class="nc-list" id="nc-list"></div>
     <div class="modal-btns" style="margin-top:16px">
       <button class="btn-cancel" onclick="closeModal('nc-modal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- GUIDED TOUR -->
+<div id="tour">
+  <div id="tour-spot"></div>
+  <button class="tour-skip" onclick="endTour()">Skip tour ✕</button>
+  <div id="tour-card">
+    <span class="tour-step-badge" id="tour-badge">✨ TOUR</span>
+    <div id="tour-title"></div>
+    <div id="tour-text"></div>
+    <div class="tour-foot">
+      <div class="tour-dots" id="tour-dots"></div>
+      <button class="tour-next" id="tour-next" onclick="tourNext()">Next →</button>
     </div>
   </div>
 </div>
