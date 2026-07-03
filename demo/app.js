@@ -83,6 +83,58 @@ const FACIAL_HAIR = [
 /* The "ink" outline colour that gives the Bitmoji look. */
 const INK = '#2a1e15';
 
+/* ═══════════════════════════════════════════════════════════════════
+   CULTURAL PASSPORT — every country you hear music from gets collected.
+   Your "% of worldwide cultural listening" = collected / total countries.
+   ═══════════════════════════════════════════════════════════════════ */
+const COUNTRIES = [
+  // Europe
+  {n:'Spain',f:'🇪🇸',r:'Europe'},{n:'United Kingdom',f:'🇬🇧',r:'Europe'},{n:'France',f:'🇫🇷',r:'Europe'},{n:'Italy',f:'🇮🇹',r:'Europe'},
+  {n:'Germany',f:'🇩🇪',r:'Europe'},{n:'Portugal',f:'🇵🇹',r:'Europe'},{n:'Netherlands',f:'🇳🇱',r:'Europe'},{n:'Sweden',f:'🇸🇪',r:'Europe'},
+  {n:'Ireland',f:'🇮🇪',r:'Europe'},{n:'Norway',f:'🇳🇴',r:'Europe'},{n:'Greece',f:'🇬🇷',r:'Europe'},{n:'Poland',f:'🇵🇱',r:'Europe'},
+  {n:'Ukraine',f:'🇺🇦',r:'Europe'},{n:'Russia',f:'🇷🇺',r:'Europe'},{n:'Iceland',f:'🇮🇸',r:'Europe'},{n:'Belgium',f:'🇧🇪',r:'Europe'},
+  {n:'Switzerland',f:'🇨🇭',r:'Europe'},{n:'Austria',f:'🇦🇹',r:'Europe'},{n:'Denmark',f:'🇩🇰',r:'Europe'},{n:'Finland',f:'🇫🇮',r:'Europe'},
+  {n:'Croatia',f:'🇭🇷',r:'Europe'},{n:'Serbia',f:'🇷🇸',r:'Europe'},{n:'Romania',f:'🇷🇴',r:'Europe'},{n:'Hungary',f:'🇭🇺',r:'Europe'},
+  {n:'Czechia',f:'🇨🇿',r:'Europe'},{n:'Turkey',f:'🇹🇷',r:'Europe'},
+  // Americas
+  {n:'United States',f:'🇺🇸',r:'Americas'},{n:'Canada',f:'🇨🇦',r:'Americas'},{n:'Mexico',f:'🇲🇽',r:'Americas'},{n:'Brazil',f:'🇧🇷',r:'Americas'},
+  {n:'Argentina',f:'🇦🇷',r:'Americas'},{n:'Colombia',f:'🇨🇴',r:'Americas'},{n:'Puerto Rico',f:'🇵🇷',r:'Americas'},{n:'Chile',f:'🇨🇱',r:'Americas'},
+  {n:'Peru',f:'🇵🇪',r:'Americas'},{n:'Jamaica',f:'🇯🇲',r:'Americas'},{n:'Cuba',f:'🇨🇺',r:'Americas'},{n:'Dominican Republic',f:'🇩🇴',r:'Americas'},
+  {n:'Venezuela',f:'🇻🇪',r:'Americas'},{n:'Ecuador',f:'🇪🇨',r:'Americas'},{n:'Uruguay',f:'🇺🇾',r:'Americas'},{n:'Bolivia',f:'🇧🇴',r:'Americas'},
+  {n:'Guatemala',f:'🇬🇹',r:'Americas'},{n:'Costa Rica',f:'🇨🇷',r:'Americas'},{n:'Panama',f:'🇵🇦',r:'Americas'},{n:'Trinidad & Tobago',f:'🇹🇹',r:'Americas'},
+  // Asia
+  {n:'South Korea',f:'🇰🇷',r:'Asia'},{n:'Japan',f:'🇯🇵',r:'Asia'},{n:'China',f:'🇨🇳',r:'Asia'},{n:'India',f:'🇮🇳',r:'Asia'},
+  {n:'Indonesia',f:'🇮🇩',r:'Asia'},{n:'Philippines',f:'🇵🇭',r:'Asia'},{n:'Thailand',f:'🇹🇭',r:'Asia'},{n:'Vietnam',f:'🇻🇳',r:'Asia'},
+  {n:'Malaysia',f:'🇲🇾',r:'Asia'},{n:'Pakistan',f:'🇵🇰',r:'Asia'},{n:'Bangladesh',f:'🇧🇩',r:'Asia'},{n:'Israel',f:'🇮🇱',r:'Asia'},
+  {n:'Saudi Arabia',f:'🇸🇦',r:'Asia'},{n:'United Arab Emirates',f:'🇦🇪',r:'Asia'},{n:'Iran',f:'🇮🇷',r:'Asia'},{n:'Kazakhstan',f:'🇰🇿',r:'Asia'},
+  {n:'Sri Lanka',f:'🇱🇰',r:'Asia'},{n:'Nepal',f:'🇳🇵',r:'Asia'},{n:'Singapore',f:'🇸🇬',r:'Asia'},{n:'Lebanon',f:'🇱🇧',r:'Asia'},
+  // Africa
+  {n:'Nigeria',f:'🇳🇬',r:'Africa'},{n:'South Africa',f:'🇿🇦',r:'Africa'},{n:'Egypt',f:'🇪🇬',r:'Africa'},{n:'Ghana',f:'🇬🇭',r:'Africa'},
+  {n:'Kenya',f:'🇰🇪',r:'Africa'},{n:'Morocco',f:'🇲🇦',r:'Africa'},{n:'Ethiopia',f:'🇪🇹',r:'Africa'},{n:'Tanzania',f:'🇹🇿',r:'Africa'},
+  {n:'Senegal',f:'🇸🇳',r:'Africa'},{n:'Angola',f:'🇦🇴',r:'Africa'},{n:'Algeria',f:'🇩🇿',r:'Africa'},{n:'Ivory Coast',f:'🇨🇮',r:'Africa'},
+  {n:'Cameroon',f:'🇨🇲',r:'Africa'},{n:'Uganda',f:'🇺🇬',r:'Africa'},{n:'Congo (DRC)',f:'🇨🇩',r:'Africa'},{n:'Zimbabwe',f:'🇿🇼',r:'Africa'},
+  {n:'Tunisia',f:'🇹🇳',r:'Africa'},{n:'Mali',f:'🇲🇱',r:'Africa'},
+  // Oceania
+  {n:'Australia',f:'🇦🇺',r:'Oceania'},{n:'New Zealand',f:'🇳🇿',r:'Oceania'},{n:'Fiji',f:'🇫🇯',r:'Oceania'},{n:'Papua New Guinea',f:'🇵🇬',r:'Oceania'},
+];
+/* The user's vision: "if there are 236 countries, the % is out of that." */
+const WORLD_TOTAL = 236;
+const REGIONS = ['Europe','Americas','Asia','Africa','Oceania'];
+
+/* Which country each track's music comes from. */
+const SONG_COUNTRY = {
+  'Blinding Lights':'Canada','Starboy':'Canada','Peaches':'Canada','Señorita':'Canada','Stay':'Australia',
+  'bad guy':'United States','Flowers':'United States','Anti-Hero':'United States','Cruel Summer':'United States',
+  'drivers license':'United States','Closer':'United States','Thunder':'United States','Sunflower':'United States',
+  'As It Was':'United Kingdom','Watermelon Sugar':'United Kingdom','Levitating':'United Kingdom','Heat Waves':'United Kingdom',
+  'Shape of You':'United Kingdom','Uptown Funk':'United Kingdom','Seven':'South Korea','Dynamite':'South Korea',
+  'Dance Monkey':'Australia','You Can Be Loved':'Jamaica',
+  // international additions below
+  'Despacito':'Puerto Rico','Gangnam Style':'South Korea','Waka Waka':'Colombia','Jerusalema':'South Africa',
+  'La Vie en Rose':'France','Volare':'Italy','Calm Down':'Nigeria','Baila Esta Cumbia':'Mexico',
+};
+function songCountry(name){ return SONG_COUNTRY[name] || 'United States'; }
+
 /* Song catalog (mock). Album art from Spotify CDN. */
 const SONGS = [
   { name:'Blinding Lights',  artist:'The Weeknd',                     album:'After Hours',              dur:'3:59', art:'https://i.scdn.co/image/ab67616d0000b273b1c4b76e23414c9f20242268' },
@@ -106,6 +158,11 @@ const SONGS = [
   { name:'Sunflower',        artist:'Post Malone & Swae Lee',         album:'Spider-Man: Into…',        dur:'2:38', art:'https://i.scdn.co/image/ab67616d0000b273e2e352d89826aef6dbd5ff8f' },
   { name:'Cruel Summer',     artist:'Taylor Swift',                   album:'Lover',                    dur:'2:58', art:'https://i.scdn.co/image/ab67616d0000b273bb54dde68cd23e2a268ae0f5' },
   { name:'You Can Be Loved', artist:'Jam Map Sessions',               album:'Singles',                  dur:'3:12', art:'https://i.scdn.co/image/ab67616d0000b2734bc66095f8a70bc4e6593f4f' },
+  { name:'Despacito',        artist:'Luis Fonsi ft. Daddy Yankee',    album:'Vida',                     dur:'3:47', art:'https://i.scdn.co/image/ab67616d0000b273ef0d4234e1a645740f77d59c' },
+  { name:'Gangnam Style',    artist:'PSY',                            album:'Psy 6',                    dur:'3:39', art:'https://i.scdn.co/image/ab67616d0000b2734ae1c4c5c45aabe565499163' },
+  { name:'Waka Waka',        artist:'Shakira',                        album:'Listen Up!',               dur:'3:22', art:'https://i.scdn.co/image/ab67616d0000b273b8aa2c63cff1a92cd23f5cc2' },
+  { name:'Jerusalema',       artist:'Master KG ft. Nomcebo',         album:'Jerusalema',               dur:'4:15', art:'https://i.scdn.co/image/ab67616d0000b273712b1a8f2e5680c5d6d9a931' },
+  { name:'Calm Down',        artist:'Rema',                           album:'Rave & Roses',             dur:'3:40', art:'https://i.scdn.co/image/ab67616d0000b27369026e59440706b3a7d0fa4a' },
 ];
 
 /* Friends. Each has their own avatar spec (skin, hair, shirt, phones). */
@@ -185,6 +242,8 @@ let curFriend = null;
 let blockChoice = null;
 let isPlaying = false, progVal = 35, progTimer = null;
 let visSongs = SONGS;
+// Cultural Passport — seed a few countries so it looks lived-in.
+const collectedCountries = new Set(['United States', 'United Kingdom', 'Canada', 'Spain', 'South Korea', 'Brazil', 'Japan', 'Nigeria']);
 const SW = {};              // swipe state per row
 const THRESH = 110;         // swipe threshold px
 let map = null;
@@ -621,6 +680,7 @@ function bootApp() {
   buildActivity();
   buildSuggested();
   updateOnlineCount();
+  updatePassportBadge();
   if (!map) initMap();
 
   // If the user chose the guided tour, launch it instead of demo popups
@@ -885,6 +945,7 @@ function queueSong(i) {
   toast('🎵', `"${song.name}" sent to ${curFriend.name}'s queue!`);
   // also drop into chat as a shared song
   (CHATS[curFriend.id] = CHATS[curFriend.id] || []).push({ from: 'me', song: { name: song.name, artist: song.artist, art: song.art }, time: nowTime() });
+  collectCountry(song.name);
 }
 
 /* ── CHAT ── */
@@ -1149,6 +1210,53 @@ function playSong(name, artist, art) {
   progVal = 0; document.getElementById('p-fill').style.width = '0%'; document.getElementById('p-cur').textContent = '0:00';
   if (!isPlaying) togglePlay();
   toast('▶️', `Now playing "${name}"`);
+  collectCountry(name);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   CULTURAL PASSPORT
+   ═══════════════════════════════════════════════════════════════════ */
+function passportPct() { return (collectedCountries.size / WORLD_TOTAL) * 100; }
+
+function collectCountry(songName) {
+  const country = songCountry(songName);
+  if (!country || collectedCountries.has(country)) return;
+  collectedCountries.add(country);
+  const c = COUNTRIES.find(x => x.n === country);
+  const flag = c ? c.f : '🌍';
+  pushNotif(flag, 'New culture unlocked!', `${country} added to your passport · ${passportPct().toFixed(1)}% of the world`);
+  toast(flag, `${country} unlocked! (+${(100 / WORLD_TOTAL).toFixed(1)}%)`);
+  updatePassportBadge();
+}
+
+function updatePassportBadge() {
+  const b = document.getElementById('passport-badge');
+  if (b) b.textContent = passportPct().toFixed(1) + '%';
+}
+
+function openPassport() {
+  const pct = passportPct();
+  document.getElementById('pp-pct').textContent = pct.toFixed(1) + '%';
+  document.getElementById('pp-count').textContent = `${collectedCountries.size} of ${WORLD_TOTAL} countries`;
+  // progress ring
+  const ring = document.getElementById('pp-ring-fill');
+  const circ = 2 * Math.PI * 52;
+  ring.style.strokeDasharray = circ;
+  ring.style.strokeDashoffset = circ * (1 - Math.min(pct / 100, 1));
+  // region breakdown + flags
+  let html = '';
+  REGIONS.forEach(region => {
+    const inRegion = COUNTRIES.filter(c => c.r === region);
+    const got = inRegion.filter(c => collectedCountries.has(c.n));
+    html += `<div class="pp-region">
+      <div class="pp-region-head"><span>${region}</span><span class="pp-region-n">${got.length}/${inRegion.length}</span></div>
+      <div class="pp-flags">` +
+      inRegion.map(c => `<div class="pp-flag ${collectedCountries.has(c.n) ? 'got' : 'locked'}" title="${c.n}">
+        <span class="ppf-emoji">${c.f}</span><span class="ppf-name">${c.n}</span></div>`).join('') +
+      `</div></div>`;
+  });
+  document.getElementById('pp-regions').innerHTML = html;
+  document.getElementById('pp-modal').classList.add('on');
 }
 function startProg() {
   clearInterval(progTimer);
@@ -1365,7 +1473,7 @@ document.addEventListener('keydown', e => {
   if (e.code === 'Escape') {
     if (document.getElementById('tour').classList.contains('on')) { endTour(); return; }
     closeSheet();
-    ['blk-modal', 'lt-modal', 'af-modal', 'prof-modal', 'nc-modal'].forEach(closeModal);
+    ['blk-modal', 'lt-modal', 'af-modal', 'prof-modal', 'nc-modal', 'pp-modal'].forEach(closeModal);
   }
 });
 

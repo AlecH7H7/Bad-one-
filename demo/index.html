@@ -526,6 +526,28 @@ img{display:block}
 .nc-time{font-size:10px;color:var(--t3);margin-top:2px}
 
 /* ════════════════════════════════════════════════════
+   CULTURAL PASSPORT
+   ════════════════════════════════════════════════════ */
+.pp-hero{display:flex;flex-direction:column;align-items:center;text-align:center;margin-bottom:18px}
+.pp-ring{position:relative;width:128px;height:128px;margin-bottom:14px}
+.pp-ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.pp-pct{font-size:26px;font-weight:900;letter-spacing:-1px;color:var(--green)}
+.pp-of{font-size:10px;color:var(--t3);font-weight:600;letter-spacing:.5px;margin-top:-2px}
+.pp-title{font-size:18px;font-weight:900;letter-spacing:-.3px}
+.pp-count{font-size:13px;color:var(--t2);font-weight:600;margin-top:4px}
+.pp-hint{font-size:12px;color:var(--t3);line-height:1.5;max-width:320px;margin-top:10px}
+.pp-regions{max-height:38vh;overflow-y:auto;padding-right:4px}
+.pp-region{margin-bottom:16px}
+.pp-region-head{display:flex;align-items:center;justify-content:space-between;font-size:11px;font-weight:800;letter-spacing:.6px;color:var(--t3);margin-bottom:8px;position:sticky;top:0;background:linear-gradient(180deg,#1a1a1a,#181818);padding:4px 0}
+.pp-region-n{color:var(--green)}
+.pp-flags{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.pp-flag{display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 4px;border-radius:10px;background:var(--surf2);border:1px solid var(--bdr);transition:all .15s}
+.pp-flag.got{background:var(--gdim);border-color:rgba(29,185,84,.35)}
+.pp-flag.locked{opacity:.32;filter:grayscale(1)}
+.ppf-emoji{font-size:20px;line-height:1}
+.ppf-name{font-size:8.5px;color:var(--t2);text-align:center;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+
+/* ════════════════════════════════════════════════════
    GUIDED TOUR
    ════════════════════════════════════════════════════ */
 #tour{position:fixed;inset:0;z-index:1500;display:none;pointer-events:none}
@@ -671,6 +693,9 @@ img{display:block}
       <input type="text" placeholder="Search songs, artists, or friends…"/>
     </div>
     <div class="hdr-right">
+      <button class="hdr-icobtn" onclick="openPassport()" title="Cultural Passport" style="width:auto;padding:0 13px;gap:7px;font-size:12px;font-weight:700">
+        <span>🌍</span> <span id="passport-badge" style="color:var(--green)">3.4%</span>
+      </button>
       <button class="hdr-icobtn" onclick="startTour()" title="Take a tour" style="width:auto;padding:0 14px;gap:6px;font-size:12px;font-weight:700">
         <span>✨</span> Tour
       </button>
@@ -934,6 +959,26 @@ img{display:block}
     <div class="modal-btns" style="margin-top:16px">
       <button class="btn-cancel" onclick="closeModal('nc-modal')">Close</button>
     </div>
+  </div>
+</div>
+
+<!-- CULTURAL PASSPORT MODAL -->
+<div class="modal" id="pp-modal">
+  <div class="modal-box" style="max-width:440px">
+    <button class="x" onclick="closeModal('pp-modal')" style="position:absolute;top:16px;right:18px;font-size:20px;color:var(--t3);background:none">✕</button>
+    <div class="pp-hero">
+      <div class="pp-ring">
+        <svg width="128" height="128" viewBox="0 0 128 128">
+          <circle cx="64" cy="64" r="52" fill="none" stroke="#282828" stroke-width="10"/>
+          <circle id="pp-ring-fill" cx="64" cy="64" r="52" fill="none" stroke="#1DB954" stroke-width="10" stroke-linecap="round" transform="rotate(-90 64 64)" style="transition:stroke-dashoffset 1s cubic-bezier(.32,.72,0,1)"/>
+        </svg>
+        <div class="pp-ring-center"><div class="pp-pct" id="pp-pct">3.4%</div><div class="pp-of">of the world</div></div>
+      </div>
+      <div class="pp-title">🌍 Cultural Passport</div>
+      <div class="pp-count" id="pp-count">8 of 236 countries</div>
+      <div class="pp-hint">Every country you hear music from gets added. Send or play a song from a new place to collect it 🎧</div>
+    </div>
+    <div class="pp-regions" id="pp-regions"></div>
   </div>
 </div>
 
