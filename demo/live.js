@@ -99,9 +99,38 @@ const SONGS = [
   { name: 'Shape of You', artist: 'Ed Sheeran', art: 'https://i.scdn.co/image/ab67616d0000b273ba5db46f4b838ef6027e6f96' },
 ];
 
+/* ── Cultural Passport data ── */
+const COUNTRIES = [
+  {n:'Spain',f:'🇪🇸',r:'Europe'},{n:'United Kingdom',f:'🇬🇧',r:'Europe'},{n:'France',f:'🇫🇷',r:'Europe'},{n:'Italy',f:'🇮🇹',r:'Europe'},
+  {n:'Germany',f:'🇩🇪',r:'Europe'},{n:'Portugal',f:'🇵🇹',r:'Europe'},{n:'Sweden',f:'🇸🇪',r:'Europe'},{n:'Ireland',f:'🇮🇪',r:'Europe'},
+  {n:'Greece',f:'🇬🇷',r:'Europe'},{n:'Poland',f:'🇵🇱',r:'Europe'},{n:'Netherlands',f:'🇳🇱',r:'Europe'},{n:'Turkey',f:'🇹🇷',r:'Europe'},
+  {n:'United States',f:'🇺🇸',r:'Americas'},{n:'Canada',f:'🇨🇦',r:'Americas'},{n:'Mexico',f:'🇲🇽',r:'Americas'},{n:'Brazil',f:'🇧🇷',r:'Americas'},
+  {n:'Argentina',f:'🇦🇷',r:'Americas'},{n:'Colombia',f:'🇨🇴',r:'Americas'},{n:'Puerto Rico',f:'🇵🇷',r:'Americas'},{n:'Jamaica',f:'🇯🇲',r:'Americas'},
+  {n:'Chile',f:'🇨🇱',r:'Americas'},{n:'Peru',f:'🇵🇪',r:'Americas'},{n:'Cuba',f:'🇨🇺',r:'Americas'},
+  {n:'South Korea',f:'🇰🇷',r:'Asia'},{n:'Japan',f:'🇯🇵',r:'Asia'},{n:'China',f:'🇨🇳',r:'Asia'},{n:'India',f:'🇮🇳',r:'Asia'},
+  {n:'Indonesia',f:'🇮🇩',r:'Asia'},{n:'Philippines',f:'🇵🇭',r:'Asia'},{n:'Thailand',f:'🇹🇭',r:'Asia'},{n:'Vietnam',f:'🇻🇳',r:'Asia'},
+  {n:'Nigeria',f:'🇳🇬',r:'Africa'},{n:'South Africa',f:'🇿🇦',r:'Africa'},{n:'Egypt',f:'🇪🇬',r:'Africa'},{n:'Ghana',f:'🇬🇭',r:'Africa'},
+  {n:'Kenya',f:'🇰🇪',r:'Africa'},{n:'Morocco',f:'🇲🇦',r:'Africa'},{n:'Senegal',f:'🇸🇳',r:'Africa'},
+  {n:'Australia',f:'🇦🇺',r:'Oceania'},{n:'New Zealand',f:'🇳🇿',r:'Oceania'},
+];
+const WORLD_TOTAL = 236;
+const REGIONS = ['Europe', 'Americas', 'Asia', 'Africa', 'Oceania'];
+const SONG_COUNTRY = {
+  'Blinding Lights': 'Canada', 'Starboy': 'Canada', 'bad guy': 'United States', 'Flowers': 'United States',
+  'Anti-Hero': 'United States', 'drivers license': 'United States', 'As It Was': 'United Kingdom',
+  'Levitating': 'United Kingdom', 'Heat Waves': 'United Kingdom', 'Shape of You': 'United Kingdom',
+};
+function songCountry(n) { return SONG_COUNTRY[n] || 'United States'; }
+function passportTitle(pct) {
+  if (pct >= 100) return '🏆 Cultural Legend'; if (pct >= 60) return '🌟 World Citizen';
+  if (pct >= 35) return '🧭 Globetrotter'; if (pct >= 15) return '✈️ Wanderer';
+  if (pct >= 5) return '🎒 Explorer'; return '🌱 Rookie Listener';
+}
+
 /* ── State ── */
 const ME = { name: '', skin: SKIN_TONES[0], hair: HAIR_COLORS[0], hairstyle: 'short', shirt: SHIRT_COLORS[0], phones: 'airpods' };
 let db = null, myUid = null, myConnRef = null;
+let collectedCountries = new Set();
 const friends = {};        // uid -> {profile, unread}
 let activeFriend = null;   // uid
 let pendingInvite = null;   // uid to connect after join
@@ -126,6 +155,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const saved = localStorage.getItem('jamme');
   if (saved) { try { Object.assign(ME, JSON.parse(saved)); } catch (e) {} }
 
+  loadPassport();
   buildLoginControls();
   renderPreview();
   document.getElementById('me-name').value = ME.name || '';
@@ -195,8 +225,9 @@ function startApp() {
   document.getElementById('me-chip-av').innerHTML = renderAvatar(ME);
 
   const meRef = db.ref('users/' + myUid);
-  const profile = { name: ME.name, avatar: { skin: ME.skin, hair: ME.hair, hairstyle: ME.hairstyle, shirt: ME.shirt, phones: ME.phones }, online: true, lastSeen: firebase.database.ServerValue.TIMESTAMP };
+  const profile = { name: ME.name, avatar: { skin: ME.skin, hair: ME.hair, hairstyle: ME.hairstyle, shirt: ME.shirt, phones: ME.phones }, online: true, passportCount: collectedCountries.size, lastSeen: firebase.database.ServerValue.TIMESTAMP };
   meRef.update(profile);
+  updatePassportBadge();
 
   // presence
   const conn = db.ref('.info/connected');
@@ -322,6 +353,7 @@ function sendSong(song) {
   db.ref('chats/' + pairKey(myUid, activeFriend)).push({ fromUid: myUid, song, time: firebase.database.ServerValue.TIMESTAMP });
   blip();
   toast('🎵', `Sent "${song.name}" to ${friends[activeFriend]?.profile?.name || 'friend'}!`);
+  collectC(song.name);
 }
 
 /* ── Chat ── */
@@ -401,7 +433,59 @@ let playing = false;
 function playSong(name, artist, art) {
   toast('▶️', `Now playing "${name}"`);
   if (!playing) { playing = true; startMusic(); }
+  collectC(name);
 }
+
+/* ── Cultural Passport (LIVE) ── */
+function ppPct() { return collectedCountries.size / WORLD_TOTAL * 100; }
+function loadPassport() {
+  try { const s = JSON.parse(localStorage.getItem('jampp') || '[]'); collectedCountries = new Set(s); } catch (e) { collectedCountries = new Set(); }
+  if (collectedCountries.size === 0) collectedCountries.add('United States'); // seed 1
+}
+function savePassport() {
+  localStorage.setItem('jampp', JSON.stringify([...collectedCountries]));
+  if (db && myUid) db.ref('users/' + myUid).update({ passportCount: collectedCountries.size });
+}
+function collectC(songName) {
+  const c = songCountry(songName);
+  if (collectedCountries.has(c)) return;
+  collectedCountries.add(c);
+  savePassport();
+  updatePassportBadge();
+  const meta = COUNTRIES.find(x => x.n === c);
+  toast(meta ? meta.f : '🌍', `${c} unlocked! ${ppPct().toFixed(1)}% of the world`);
+}
+function updatePassportBadge() {
+  const b = document.getElementById('pp-badge');
+  if (b) b.textContent = ppPct().toFixed(1) + '%';
+}
+function openLivePassport() {
+  const pct = ppPct();
+  document.getElementById('lpp-pct').textContent = pct.toFixed(1) + '%';
+  document.getElementById('lpp-count').textContent = `${collectedCountries.size} of ${WORLD_TOTAL} countries`;
+  document.getElementById('lpp-rank').textContent = passportTitle(pct);
+  const ring = document.getElementById('lpp-ring');
+  const circ = 2 * Math.PI * 52;
+  ring.style.strokeDasharray = circ;
+  ring.style.strokeDashoffset = circ * (1 - Math.min(pct / 100, 1));
+  // flags by region
+  document.getElementById('lpp-flags').innerHTML = REGIONS.map(region => {
+    const inR = COUNTRIES.filter(c => c.r === region);
+    return `<div class="lpp-region-h">${region} · ${inR.filter(c => collectedCountries.has(c.n)).length}/${inR.length}</div>
+      <div class="lpp-grid">` + inR.map(c => `<div class="lpp-flag ${collectedCountries.has(c.n) ? 'got' : 'locked'}" title="${c.n}">${c.f}</div>`).join('') + `</div>`;
+  }).join('');
+  // leaderboard of connected friends + me
+  const rows = Object.keys(friends).map(uid => ({ name: friends[uid].profile?.name || 'Friend', av: friends[uid].profile?.avatar, pct: ((friends[uid].profile?.passportCount || 0) / WORLD_TOTAL) * 100, me: false }));
+  rows.push({ name: ME.name + ' (you)', av: { skin: ME.skin, hair: ME.hair, hairstyle: ME.hairstyle, shirt: ME.shirt, phones: ME.phones }, pct, me: true });
+  rows.sort((a, b) => b.pct - a.pct);
+  const medals = ['🥇', '🥈', '🥉'];
+  document.getElementById('lpp-lb').innerHTML = '<div class="lpp-lb-h">🏆 Leaderboard</div>' + rows.map((r, i) =>
+    `<div class="lpp-lb-row ${r.me ? 'me' : ''}"><span class="lpp-lb-rank">${medals[i] || (i + 1)}</span>
+      <div class="lpp-lb-av">${r.av ? renderAvatar(r.av) : ''}</div>
+      <span class="lpp-lb-name">${escapeHTML(r.name)}</span><span class="lpp-lb-pct">${r.pct.toFixed(1)}%</span></div>`).join('');
+  document.getElementById('pp-modal').classList.add('on');
+}
+function closePassport() { document.getElementById('pp-modal').classList.remove('on'); }
 
 /* ── helpers ── */
 function pairKey(a, b) { return [a, b].sort().join('__'); }

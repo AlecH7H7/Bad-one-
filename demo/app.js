@@ -135,6 +135,41 @@ const SONG_COUNTRY = {
 };
 function songCountry(name){ return SONG_COUNTRY[name] || 'United States'; }
 
+/* Approximate coordinates (capital-ish) for glowing collected countries on the map. */
+const COUNTRY_COORDS = {
+  'Spain':[40.4,-3.7],'United Kingdom':[51.5,-0.1],'France':[48.85,2.35],'Italy':[41.9,12.5],'Germany':[52.52,13.4],
+  'Portugal':[38.72,-9.14],'Netherlands':[52.37,4.9],'Sweden':[59.33,18.06],'Ireland':[53.35,-6.26],'Norway':[59.91,10.75],
+  'Greece':[37.98,23.73],'Poland':[52.23,21.01],'Ukraine':[50.45,30.52],'Russia':[55.75,37.62],'Iceland':[64.15,-21.95],
+  'Belgium':[50.85,4.35],'Switzerland':[46.95,7.45],'Austria':[48.21,16.37],'Denmark':[55.68,12.57],'Finland':[60.17,24.94],
+  'Croatia':[45.81,15.98],'Serbia':[44.79,20.45],'Romania':[44.43,26.1],'Hungary':[47.5,19.04],'Czechia':[50.08,14.44],'Turkey':[39.93,32.86],
+  'United States':[38.9,-77.04],'Canada':[45.42,-75.7],'Mexico':[19.43,-99.13],'Brazil':[-15.79,-47.88],'Argentina':[-34.6,-58.38],
+  'Colombia':[4.71,-74.07],'Puerto Rico':[18.47,-66.11],'Chile':[-33.45,-70.67],'Peru':[-12.05,-77.04],'Jamaica':[18.02,-76.8],
+  'Cuba':[23.11,-82.37],'Dominican Republic':[18.49,-69.9],'Venezuela':[10.48,-66.9],'Ecuador':[-0.18,-78.47],'Uruguay':[-34.9,-56.16],
+  'Bolivia':[-16.5,-68.15],'Guatemala':[14.63,-90.51],'Costa Rica':[9.93,-84.08],'Panama':[8.98,-79.52],'Trinidad & Tobago':[10.65,-61.5],
+  'South Korea':[37.57,126.98],'Japan':[35.68,139.69],'China':[39.9,116.4],'India':[28.61,77.21],'Indonesia':[-6.2,106.85],
+  'Philippines':[14.6,120.98],'Thailand':[13.75,100.5],'Vietnam':[21.03,105.85],'Malaysia':[3.14,101.69],'Pakistan':[33.69,73.06],
+  'Bangladesh':[23.81,90.41],'Israel':[31.77,35.21],'Saudi Arabia':[24.71,46.68],'United Arab Emirates':[24.45,54.38],'Iran':[35.69,51.39],
+  'Kazakhstan':[51.16,71.44],'Sri Lanka':[6.93,79.85],'Nepal':[27.7,85.32],'Singapore':[1.35,103.82],'Lebanon':[33.89,35.5],
+  'Nigeria':[9.08,7.4],'South Africa':[-25.75,28.19],'Egypt':[30.04,31.24],'Ghana':[5.6,-0.19],'Kenya':[-1.29,36.82],
+  'Morocco':[34.02,-6.83],'Ethiopia':[9.03,38.74],'Tanzania':[-6.16,35.75],'Senegal':[14.72,-17.47],'Angola':[-8.84,13.23],
+  'Algeria':[36.75,3.06],'Ivory Coast':[5.35,-4.03],'Cameroon':[3.85,11.5],'Uganda':[0.35,32.58],'Congo (DRC)':[-4.32,15.31],
+  'Zimbabwe':[-17.83,31.05],'Tunisia':[36.8,10.18],'Mali':[12.64,-8.0],
+  'Australia':[-35.28,149.13],'New Zealand':[-41.29,174.78],'Fiji':[-18.14,178.44],'Papua New Guinea':[-9.44,147.18],
+};
+
+/* Explorer rank/title based on how much of the world you've heard. */
+function passportTitle(pct) {
+  if (pct >= 100) return '🏆 Cultural Legend';
+  if (pct >= 60) return '🌟 World Citizen';
+  if (pct >= 35) return '🧭 Globetrotter';
+  if (pct >= 15) return '✈️ Wanderer';
+  if (pct >= 5) return '🎒 Explorer';
+  return '🌱 Rookie Listener';
+}
+
+/* Mock passport % for demo friends (for the leaderboard). */
+const FRIEND_PASSPORT = { 1: 14.4, 2: 22.0, 3: 6.4, 4: 31.4, 5: 4.7, 6: 18.6, 7: 9.7 };
+
 /* Song catalog (mock). Album art from Spotify CDN. */
 const SONGS = [
   { name:'Blinding Lights',  artist:'The Weeknd',                     album:'After Hours',              dur:'3:59', art:'https://i.scdn.co/image/ab67616d0000b273b1c4b76e23414c9f20242268' },
@@ -715,6 +750,7 @@ function initMap() {
   }).addTo(map);
 
   FRIENDS.forEach(f => addFriendMarker(f));
+  renderPassportGlows();
 
   // "You" marker
   const you = document.createElement('div');
@@ -1218,15 +1254,37 @@ function playSong(name, artist, art) {
    ═══════════════════════════════════════════════════════════════════ */
 function passportPct() { return (collectedCountries.size / WORLD_TOTAL) * 100; }
 
-function collectCountry(songName) {
-  const country = songCountry(songName);
-  if (!country || collectedCountries.has(country)) return;
+function collectCountry(songName) { collect(songCountry(songName)); }
+
+/* Core: add a country to the passport (with fanfare + map glow). */
+function collect(country) {
+  if (!country || collectedCountries.has(country)) return false;
   collectedCountries.add(country);
   const c = COUNTRIES.find(x => x.n === country);
   const flag = c ? c.f : '🌍';
   pushNotif(flag, 'New culture unlocked!', `${country} added to your passport · ${passportPct().toFixed(1)}% of the world`);
   toast(flag, `${country} unlocked! (+${(100 / WORLD_TOTAL).toFixed(1)}%)`);
   updatePassportBadge();
+  renderPassportGlows();
+  return true;
+}
+
+/* Green glowing pins on the map for every collected country. */
+let passportLayer = null;
+function renderPassportGlows() {
+  if (!map || typeof L === 'undefined') return;
+  if (!passportLayer) passportLayer = L.layerGroup().addTo(map);
+  passportLayer.clearLayers();
+  collectedCountries.forEach(country => {
+    const co = COUNTRY_COORDS[country];
+    if (!co) return;
+    const c = COUNTRIES.find(x => x.n === country);
+    const el = document.createElement('div');
+    el.className = 'glow-pin';
+    el.innerHTML = `<div class="glow-ring"></div><div class="glow-core">${c ? c.f : '🌍'}</div>`;
+    const icon = L.divIcon({ html: el, className: '', iconSize: [26, 26], iconAnchor: [13, 13] });
+    L.marker(co, { icon, interactive: false, keyboard: false }).addTo(passportLayer);
+  });
 }
 
 function updatePassportBadge() {
@@ -1238,6 +1296,7 @@ function openPassport() {
   const pct = passportPct();
   document.getElementById('pp-pct').textContent = pct.toFixed(1) + '%';
   document.getElementById('pp-count').textContent = `${collectedCountries.size} of ${WORLD_TOTAL} countries`;
+  document.getElementById('pp-title-rank').textContent = passportTitle(pct);
   // progress ring
   const ring = document.getElementById('pp-ring-fill');
   const circ = 2 * Math.PI * 52;
@@ -1257,6 +1316,51 @@ function openPassport() {
   });
   document.getElementById('pp-regions').innerHTML = html;
   document.getElementById('pp-modal').classList.add('on');
+}
+
+/* Discover: play a song from a random country you haven't collected yet. */
+function discoverCountry() {
+  // prefer countries that have a song so we can actually play one
+  const songCountries = [...new Set(Object.values(SONG_COUNTRY))];
+  let pool = songCountries.filter(c => !collectedCountries.has(c));
+  let song = null;
+  if (pool.length) {
+    const country = pool[Math.floor(Math.random() * pool.length)];
+    const name = Object.keys(SONG_COUNTRY).find(n => SONG_COUNTRY[n] === country);
+    song = SONGS.find(s => s.name === name);
+  }
+  if (!song) {
+    // fall back to unlocking any uncollected country directly
+    const rest = COUNTRIES.filter(c => !collectedCountries.has(c.n));
+    if (!rest.length) { toast('🏆', 'You\'ve explored the whole world!'); return; }
+    collect(rest[Math.floor(Math.random() * rest.length)].n);
+    openPassport();
+    return;
+  }
+  closeModal('pp-modal');
+  playSong(song.name, song.artist, song.art);   // playSong collects the country
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   FRIENDS LEADERBOARD — who's explored the most of the world
+   ═══════════════════════════════════════════════════════════════════ */
+function openLeaderboard() {
+  closeModal('pp-modal');
+  const rows = FRIENDS.map(f => ({ name: f.name, av: renderAvatar(f), pct: FRIEND_PASSPORT[f.id] || 0, me: false }));
+  rows.push({ name: ME.name + ' (you)', av: renderAvatar(ME), pct: passportPct(), me: true });
+  rows.sort((a, b) => b.pct - a.pct);
+  const medals = ['🥇', '🥈', '🥉'];
+  document.getElementById('lb-list').innerHTML = rows.map((r, i) => `
+    <div class="lb-row ${r.me ? 'me' : ''}">
+      <div class="lb-rank">${medals[i] || (i + 1)}</div>
+      <div class="lb-av">${r.av}</div>
+      <div class="lb-info">
+        <div class="lb-name">${escapeHTML(r.name)}</div>
+        <div class="lb-bar"><div class="lb-fill" style="width:${Math.min(r.pct, 100)}%"></div></div>
+      </div>
+      <div class="lb-pct">${r.pct.toFixed(1)}%</div>
+    </div>`).join('');
+  document.getElementById('lb-modal').classList.add('on');
 }
 function startProg() {
   clearInterval(progTimer);
@@ -1473,7 +1577,7 @@ document.addEventListener('keydown', e => {
   if (e.code === 'Escape') {
     if (document.getElementById('tour').classList.contains('on')) { endTour(); return; }
     closeSheet();
-    ['blk-modal', 'lt-modal', 'af-modal', 'prof-modal', 'nc-modal', 'pp-modal'].forEach(closeModal);
+    ['blk-modal', 'lt-modal', 'af-modal', 'prof-modal', 'nc-modal', 'pp-modal', 'lb-modal'].forEach(closeModal);
   }
 });
 
