@@ -1615,6 +1615,12 @@ const TOUR_STEPS = [
     placement: 'below',
   },
   {
+    target: 'button[title="Privacy & permissions"]',
+    title: 'Privacy & permissions 🛡️',
+    text: '<b>Ghost Mode</b> hides your location. Choose <b>who can add to your Jam</b> — everyone, only close friends, or no one. And <b>Ask First</b> makes you approve each song, so no one can troll your queue.',
+    placement: 'below',
+  },
+  {
     target: '#player',
     title: 'Player & controls 🎵',
     text: 'The bar at the bottom plays music for real (built-in preview), with play, skip, seek, like and volume — plus your headphone brand as the active device.',
