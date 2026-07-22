@@ -283,6 +283,16 @@ const SW = {};              // swipe state per row
 const THRESH = 110;         // swipe threshold px
 let map = null;
 const markerRefs = {};      // friend id -> leaflet marker
+let youMarker = null;       // your own map pin (hidden in ghost mode)
+
+/* Privacy & permissions */
+const PRIVACY = {
+  ghost: false,             // hide my location
+  addPolicy: 'all',         // 'all' | 'close' | 'none' — who can add to my Jam
+  askFirst: false,          // approve each incoming song
+  closeFriends: new Set(),  // trusted friend ids (for 'close' policy)
+};
+let pendingReq = null;      // the incoming request awaiting approval
 
 /* ═══════════════════════════════════════════════════════════════════
    2. SVG AVATAR GENERATOR
@@ -763,9 +773,9 @@ function initMap() {
       <div class="mpin-eq" style="background:#9b59f7"><div></div><div></div><div></div></div>
     </div>
     <div class="mpin-tail" style="border-top-color:#9b59f7"></div>`;
-  L.marker([ME.lat, ME.lng], { icon: L.divIcon({ html: you, className: '', iconSize: [70, 84], iconAnchor: [35, 74] }) })
-    .addTo(map)
+  youMarker = L.marker([ME.lat, ME.lng], { icon: L.divIcon({ html: you, className: '', iconSize: [70, 84], iconAnchor: [35, 74] }) })
     .bindTooltip(`<strong>You</strong> · ${ME.city}`, { direction: 'top', offset: [0, -70], opacity: 1 });
+  if (!PRIVACY.ghost) youMarker.addTo(map);
 }
 
 function addFriendMarker(f) {
@@ -1418,6 +1428,89 @@ function openLeaderboard() {
     </div>`).join('');
   document.getElementById('lb-modal').classList.add('on');
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   PRIVACY & PERMISSIONS — ghost mode, add-policy, ask-first
+   ═══════════════════════════════════════════════════════════════════ */
+function openPrivacy() {
+  document.getElementById('sw-ghost').checked = PRIVACY.ghost;
+  document.getElementById('sw-ask').checked = PRIVACY.askFirst;
+  document.querySelectorAll('#seg-policy .seg-opt').forEach(b => b.classList.toggle('on', b.dataset.p === PRIVACY.addPolicy));
+  document.getElementById('close-list').classList.toggle('hidden', PRIVACY.addPolicy !== 'close');
+  renderCloseList();
+  document.getElementById('privacy-modal').classList.add('on');
+}
+
+function toggleGhost(on) {
+  PRIVACY.ghost = on;
+  if (map && youMarker) {
+    if (on) map.removeLayer(youMarker);
+    else youMarker.addTo(map);
+  }
+  document.getElementById('ghost-chip').classList.toggle('hidden', !on);
+  toast(on ? '👻' : '📍', on ? 'Ghost mode ON — you\'re hidden from the map' : 'Location sharing back on');
+}
+
+function setAddPolicy(p, el) {
+  PRIVACY.addPolicy = p;
+  document.querySelectorAll('#seg-policy .seg-opt').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('close-list').classList.toggle('hidden', p !== 'close');
+  const labels = { all: 'Everyone can add to your Jam', close: 'Only your close friends can add songs', none: 'No one can add to your Jam' };
+  toast('🎵', labels[p]);
+}
+
+function renderCloseList() {
+  document.getElementById('close-list').innerHTML =
+    '<div class="cf-hint">Pick who you trust to add songs anytime:</div>' +
+    FRIENDS.map(f => `
+      <label class="cf-row">
+        <div class="cf-av">${renderAvatar(f)}</div>
+        <span class="cf-name">${f.name}</span>
+        <input type="checkbox" ${PRIVACY.closeFriends.has(f.id) ? 'checked' : ''} onchange="toggleCloseFriend(${f.id}, this.checked)"/>
+      </label>`).join('');
+}
+function toggleCloseFriend(id, on) {
+  if (on) PRIVACY.closeFriends.add(id); else PRIVACY.closeFriends.delete(id);
+}
+
+/* Demo: simulate a friend trying to add a song to YOUR jam, respecting your rules. */
+function simulateIncomingRequest() {
+  const online = FRIENDS.filter(f => f.online);
+  const f = online[Math.floor(Math.random() * online.length)];
+  const song = SONGS[Math.floor(Math.random() * SONGS.length)];
+  if (PRIVACY.addPolicy === 'none') {
+    pushNotif('🚫', 'Request blocked', `${f.name} tried to add "${song.name}" — your Jam is set to No one`);
+    return;
+  }
+  if (PRIVACY.addPolicy === 'close' && !PRIVACY.closeFriends.has(f.id)) {
+    pushNotif('🔒', 'Request blocked', `${f.name} isn't a close friend — song not added`);
+    return;
+  }
+  if (PRIVACY.askFirst) { showRequestModal(f, song); }
+  else { addToMyQueue(f, song); }
+}
+function addToMyQueue(f, song) {
+  pushNotif('🎵', 'Added to your Jam', `${f.name} added "${song.name}" to your queue`);
+  playSong(song.name, song.artist, song.art);
+}
+function showRequestModal(f, song) {
+  pendingReq = { f, song };
+  document.getElementById('req-avatar').innerHTML = renderAvatar(f);
+  document.getElementById('req-name').textContent = f.name;
+  document.getElementById('req-art').src = song.art;
+  document.getElementById('req-song').textContent = song.name;
+  document.getElementById('req-artist').textContent = song.artist;
+  document.getElementById('req-modal').classList.add('on');
+}
+function allowRequest() {
+  closeModal('req-modal');
+  if (pendingReq) addToMyQueue(pendingReq.f, pendingReq.song);
+}
+function denyRequest() {
+  closeModal('req-modal');
+  if (pendingReq) toast('🚫', `Denied ${pendingReq.f.name}'s song request`);
+}
 function startProg() {
   clearInterval(progTimer);
   progTimer = setInterval(() => {
@@ -1668,7 +1761,7 @@ document.addEventListener('keydown', e => {
   if (e.code === 'Escape') {
     if (document.getElementById('tour').classList.contains('on')) { endTour(); return; }
     closeSheet();
-    ['blk-modal', 'lt-modal', 'af-modal', 'prof-modal', 'nc-modal', 'pp-modal', 'lb-modal'].forEach(closeModal);
+    ['blk-modal', 'lt-modal', 'af-modal', 'prof-modal', 'nc-modal', 'pp-modal', 'lb-modal', 'privacy-modal', 'req-modal'].forEach(closeModal);
   }
 });
 

@@ -559,6 +559,36 @@ img{display:block}
 .nc-time{font-size:10px;color:var(--t3);margin-top:2px}
 
 /* ════════════════════════════════════════════════════
+   PRIVACY & PERMISSIONS
+   ════════════════════════════════════════════════════ */
+.setting-row{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--bdr)}
+.setting-block{padding:16px 0;border-bottom:1px solid var(--bdr)}
+.setting-text{flex:1}
+.setting-title{font-size:14px;font-weight:700}
+.setting-sub{font-size:11px;color:var(--t3);margin-top:3px;line-height:1.4}
+.switch{position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;inset:0;background:var(--surf3);border-radius:26px;transition:.25s}
+.slider::before{content:'';position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.25s}
+.switch input:checked + .slider{background:var(--green)}
+.switch input:checked + .slider::before{transform:translateX(20px)}
+.seg{display:flex;gap:4px;margin-top:12px;background:var(--surf);border-radius:12px;padding:4px}
+.seg-opt{flex:1;padding:9px 6px;border-radius:9px;font-size:12px;font-weight:700;color:var(--t3);cursor:pointer;transition:all .15s}
+.seg-opt.on{background:var(--green);color:#000}
+.seg-opt:not(.on):hover{background:var(--hov);color:var(--t1)}
+.close-list{margin-top:12px;max-height:180px;overflow-y:auto}
+.cf-hint{font-size:11px;color:var(--t3);margin-bottom:8px}
+.cf-row{display:flex;align-items:center;gap:11px;padding:8px 6px;border-radius:10px;cursor:pointer}
+.cf-row:hover{background:var(--hov)}
+.cf-av{width:34px;height:34px;border-radius:50%;overflow:hidden;flex-shrink:0}
+.cf-av svg{width:100%;height:100%}
+.cf-name{flex:1;font-size:13px;font-weight:600}
+.cf-row input[type=checkbox]{width:18px;height:18px;accent-color:var(--green);cursor:pointer}
+.req-avwrap{display:flex;justify-content:center;margin-bottom:6px}
+.req-avatar{width:64px;height:64px;border-radius:50%;overflow:hidden;border:2.5px solid var(--green);box-shadow:0 0 22px var(--gglow)}
+.req-avatar svg{width:100%;height:100%}
+
+/* ════════════════════════════════════════════════════
    CULTURAL PASSPORT
    ════════════════════════════════════════════════════ */
 .pp-hero{display:flex;flex-direction:column;align-items:center;text-align:center;margin-bottom:18px}
@@ -749,6 +779,10 @@ img{display:block}
       <input type="text" placeholder="Search songs, artists, or friends…"/>
     </div>
     <div class="hdr-right">
+      <span id="ghost-chip" class="hidden" style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:rgba(255,255,255,.06);border:1px solid var(--bdr);border-radius:500px;font-size:12px;font-weight:700;color:var(--t2)">👻 Hidden</span>
+      <button class="hdr-icobtn" onclick="openPrivacy()" title="Privacy & permissions">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+      </button>
       <button class="hdr-icobtn" onclick="openPassport()" title="Cultural Passport" style="width:auto;padding:0 13px;gap:7px;font-size:12px;font-weight:700">
         <span>🌍</span> <span id="passport-badge" style="color:var(--green)">3.4%</span>
       </button>
@@ -1021,6 +1055,47 @@ img{display:block}
     <div class="modal-btns" style="margin-top:16px">
       <button class="btn-cancel" onclick="closeModal('nc-modal')">Close</button>
     </div>
+  </div>
+</div>
+
+<!-- PRIVACY & PERMISSIONS MODAL -->
+<div class="modal" id="privacy-modal">
+  <div class="modal-box" style="max-width:400px;position:relative">
+    <button class="x" onclick="closeModal('privacy-modal')" style="position:absolute;top:16px;right:18px;font-size:20px;color:var(--t3);background:none">✕</button>
+    <div class="modal-head" style="margin-bottom:18px"><span class="modal-emoji">🛡️</span><h3>Privacy &amp; Permissions</h3><p>Control your location and who can touch your Jam</p></div>
+
+    <div class="setting-row">
+      <div class="setting-text"><div class="setting-title">👻 Ghost Mode</div><div class="setting-sub">Hide your location — you vanish from everyone's map</div></div>
+      <label class="switch"><input type="checkbox" id="sw-ghost" onchange="toggleGhost(this.checked)"/><span class="slider"></span></label>
+    </div>
+
+    <div class="setting-block">
+      <div class="setting-title">🎵 Who can add songs to your Jam</div>
+      <div class="seg" id="seg-policy">
+        <button class="seg-opt on" data-p="all" onclick="setAddPolicy('all',this)">Everyone</button>
+        <button class="seg-opt" data-p="close" onclick="setAddPolicy('close',this)">Close friends</button>
+        <button class="seg-opt" data-p="none" onclick="setAddPolicy('none',this)">No one</button>
+      </div>
+      <div class="close-list hidden" id="close-list"></div>
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-text"><div class="setting-title">🙋 Ask first</div><div class="setting-sub">Approve each song before it's added — stops trolling</div></div>
+      <label class="switch"><input type="checkbox" id="sw-ask" onchange="PRIVACY.askFirst=this.checked;toast('🙋', this.checked?'Ask-first ON — you approve every song':'Ask-first off')"/><span class="slider"></span></label>
+    </div>
+
+    <button class="pp-btn primary" style="width:100%;margin-top:8px" onclick="simulateIncomingRequest()">🧪 Test an incoming song request</button>
+    <div class="modal-btns" style="margin-top:12px"><button class="btn-cancel" onclick="closeModal('privacy-modal')">Done</button></div>
+  </div>
+</div>
+
+<!-- INCOMING SONG REQUEST (ask-first) MODAL -->
+<div class="modal" id="req-modal">
+  <div class="modal-box" style="text-align:center">
+    <div class="req-avwrap"><div class="req-avatar" id="req-avatar"></div></div>
+    <div class="modal-head" style="margin-bottom:14px"><h3><span id="req-name"></span> wants to add a song</h3><p>To your Jam queue — your call:</p></div>
+    <div class="lt-tcard"><div class="lt-tart"><img id="req-art" src="" onerror="this.style.display='none'"/></div><div><div class="lt-tname" id="req-song"></div><div class="lt-tartist" id="req-artist"></div></div></div>
+    <div class="modal-btns"><button class="btn-danger" onclick="denyRequest()">🚫 Deny</button><button class="btn-primary" onclick="allowRequest()">✓ Allow</button></div>
   </div>
 </div>
 
