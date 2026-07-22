@@ -907,6 +907,7 @@ function setSheetTab(name, el) {
     if (curFriend) renderChat(curFriend.id);
     setTimeout(() => document.getElementById('chat-input').focus(), 100);
   }
+  if (name === 'profile' && curFriend) renderProfile(curFriend);
 }
 
 function updateChatBadge(f) {
@@ -982,6 +983,61 @@ function queueSong(i) {
   // also drop into chat as a shared song
   (CHATS[curFriend.id] = CHATS[curFriend.id] || []).push({ from: 'me', song: { name: song.name, artist: song.artist, art: song.art }, time: nowTime() });
   collectCountry(song.name);
+}
+
+/* ── PROFILE (recently played + playlists) ── */
+const PLAYLIST_POOL = [
+  { name: 'Late Night Drive', emoji: '🌙' }, { name: 'Gym Pump', emoji: '💪' },
+  { name: 'Chill Vibes', emoji: '🌿' }, { name: 'Throwback Hits', emoji: '📼' },
+  { name: 'Focus Flow', emoji: '🎯' }, { name: 'Party Starters', emoji: '🎉' },
+  { name: 'Summer 2024', emoji: '☀️' }, { name: 'Sad Hours', emoji: '🥀' },
+  { name: 'Road Trip', emoji: '🚗' }, { name: 'Coffee Shop', emoji: '☕' },
+];
+
+function friendRecent(f) {
+  const times = ['now', '14 min ago', '52 min ago', '2 hr ago', 'yesterday'];
+  const others = SONGS.filter(s => s.name !== f.track).slice(f.id * 2, f.id * 2 + 4);
+  const list = [{ name: f.track, artist: f.artist, art: f.art }, ...others].slice(0, 5);
+  return list.map((s, i) => ({ name: s.name, artist: s.artist, art: s.art, time: times[i] || 'earlier', nowPlaying: i === 0 && f.online }));
+}
+function friendPlaylists(f) {
+  const start = f.id % PLAYLIST_POOL.length;
+  const out = [];
+  for (let i = 0; i < 4; i++) {
+    const p = PLAYLIST_POOL[(start + i) % PLAYLIST_POOL.length];
+    out.push({ name: p.name, emoji: p.emoji, count: 16 + ((f.id * 7 + i * 13) % 90), art: SONGS[(f.id + i * 3) % SONGS.length].art });
+  }
+  return out;
+}
+
+function renderProfile(f) {
+  const recent = friendRecent(f);
+  const playlists = friendPlaylists(f);
+  const esc = s => (s || '').replace(/'/g, "\\'");
+  const html = `
+    <div class="pf-stats">
+      <div class="pf-stat"><div class="pf-stat-num">${friendPlaylists(f).reduce((a, p) => a + p.count, 0)}</div><div class="pf-stat-lbl">SONGS</div></div>
+      <div class="pf-stat"><div class="pf-stat-num">${4 + (f.id % 5)}</div><div class="pf-stat-lbl">PLAYLISTS</div></div>
+      <div class="pf-stat"><div class="pf-stat-num">${FRIEND_PASSPORT[f.id] ? FRIEND_PASSPORT[f.id].toFixed(0) + '%' : '—'}</div><div class="pf-stat-lbl">WORLD</div></div>
+    </div>
+    <div class="pf-section-label"><span>${f.online ? '🎧 LISTENING NOW & RECENT' : '🎧 RECENTLY PLAYED'}</span></div>
+    <div class="pf-recent">
+      ${recent.map(s => `
+        <div class="pf-track" onclick="playSong('${esc(s.name)}','${esc(s.artist)}','${esc(s.art)}')">
+          <div class="pf-track-art"><img src="${s.art}" onerror="this.style.display='none'"/></div>
+          <div class="pf-track-info"><div class="pf-track-name">${s.name}</div><div class="pf-track-sub">${s.artist}</div></div>
+          <div class="pf-track-time">${s.nowPlaying ? '<div class="np-eq"><span></span><span></span><span></span></div>' : ''}${s.time}</div>
+        </div>`).join('')}
+    </div>
+    <div class="pf-section-label"><span>💿 ${f.name.toUpperCase()}'S PLAYLISTS</span></div>
+    <div class="pf-playlists">
+      ${playlists.map(p => `
+        <div class="pf-pl" onclick="toast('💿','Opening &quot;${esc(p.name)}&quot;…')">
+          <div class="pf-pl-cover"><img src="${p.art}" onerror="this.style.display='none'"/><span class="pf-pl-emoji">${p.emoji}</span></div>
+          <div class="pf-pl-body"><div class="pf-pl-name">${p.name}</div><div class="pf-pl-count">${p.count} songs</div></div>
+        </div>`).join('')}
+    </div>`;
+  document.getElementById('profile-body').innerHTML = html;
 }
 
 /* ── CHAT ── */
