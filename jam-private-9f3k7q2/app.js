@@ -1511,6 +1511,144 @@ function denyRequest() {
   closeModal('req-modal');
   if (pendingReq) toast('🚫', `Denied ${pendingReq.f.name}'s song request`);
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   QUICK REACTIONS — react to a friend's current song
+   ═══════════════════════════════════════════════════════════════════ */
+function reactToFriend(emoji) {
+  if (!curFriend) return;
+  floatIn(document.getElementById('sheet'), emoji);
+  blip();
+  toast(emoji, `Reacted to ${curFriend.name}'s song`);
+  (ACTIVITY).unshift({ ico: emoji, color: curFriend.ring, msg: `You reacted ${emoji} to <strong>${curFriend.name}</strong>'s song`, time: 'now' });
+}
+function floatIn(container, emoji) {
+  const el = document.createElement('div');
+  el.className = 'float-react';
+  el.textContent = emoji;
+  el.style.left = (28 + Math.random() * 44) + '%';
+  container.appendChild(el);
+  setTimeout(() => el.remove(), 2200);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   GROUP JAM ROOMS — a synced group listening party with live reactions
+   ═══════════════════════════════════════════════════════════════════ */
+let jamRoom = null, jamProgress = 0, jamTimer = null, jamSimTimer = null, jamSearchRes = [];
+
+function openJamCreate() {
+  const online = FRIENDS.filter(f => f.online);
+  document.getElementById('jc-name').value = ME.name + "'s Jam";
+  document.getElementById('jc-friends').innerHTML = online.map(f => `
+    <label class="jc-friend">
+      <div class="jc-av">${renderAvatar(f)}</div>
+      <span>${f.name} ${f.flag}</span>
+      <input type="checkbox" value="${f.id}" checked/>
+    </label>`).join('');
+  document.getElementById('jam-create-modal').classList.add('on');
+}
+
+function startJam() {
+  const name = document.getElementById('jc-name').value.trim() || 'Jam Room';
+  const ids = [...document.querySelectorAll('#jc-friends input:checked')].map(i => +i.value);
+  const participants = FRIENDS.filter(f => ids.includes(f.id));
+  if (!participants.length) { toast('👥', 'Pick at least one friend'); return; }
+  jamRoom = { name, participants, track: SONGS[0], queue: SONGS.slice(1, 6) };
+  closeModal('jam-create-modal');
+  jamProgress = 6;
+  renderJamRoom();
+  document.getElementById('jam-modal').classList.add('on');
+  startJamPlayback();
+  startJamSim();
+  pushNotif('🎉', 'Jam Room started', `${participants.map(p => p.name).join(', ')} joined your Jam`);
+}
+
+function renderJamRoom() {
+  document.getElementById('jr-name').textContent = jamRoom.name;
+  document.getElementById('jr-art').src = jamRoom.track.art;
+  document.getElementById('jr-track').textContent = jamRoom.track.name;
+  document.getElementById('jr-artist').textContent = jamRoom.track.artist;
+  const people = [{ av: renderAvatar(ME), name: ME.name + ' (you)' }, ...jamRoom.participants.map(f => ({ av: renderAvatar(f), name: f.name }))];
+  document.getElementById('jr-count').textContent = people.length + ' listening together';
+  document.getElementById('jr-people').innerHTML = people.map(p => `
+    <div class="jr-person">
+      <div class="jr-pav">${p.av}<div class="jr-eq"><span></span><span></span><span></span></div></div>
+      <span class="jr-pname">${p.name}</span>
+    </div>`).join('');
+  renderJamQueue();
+}
+function renderJamQueue() {
+  const el = document.getElementById('jr-queue');
+  if (!jamRoom.queue.length) { el.innerHTML = '<div style="color:var(--t3);font-size:12px;padding:6px 0">Queue is empty — add a song above 👆</div>'; return; }
+  el.innerHTML = jamRoom.queue.map((s, i) => `
+    <div class="jr-qrow">
+      <span class="jr-qnum">${i + 1}</span>
+      <div class="jr-qart"><img src="${s.art}" onerror="this.style.display='none'"/></div>
+      <div class="jr-qinfo"><div class="jr-qname">${s.name}</div><div class="jr-qsub">${s.artist}</div></div>
+    </div>`).join('');
+}
+
+function startJamPlayback() {
+  clearInterval(jamTimer);
+  document.getElementById('p-song').textContent = jamRoom.track.name;
+  document.getElementById('p-artist').textContent = jamRoom.track.artist + ' · 🎉 Jam Room';
+  document.getElementById('p-art-img').src = jamRoom.track.art;
+  document.getElementById('p-art-img').style.display = '';
+  if (!isPlaying) togglePlay();
+  collectCountry(jamRoom.track.name);
+  jamTimer = setInterval(() => {
+    jamProgress += 1.4;
+    document.getElementById('jr-prog').style.width = Math.min(jamProgress, 100) + '%';
+    if (jamProgress >= 100) jamNextTrack();
+  }, 500);
+}
+function jamNextTrack() {
+  clearInterval(jamTimer);
+  if (jamRoom.queue.length) jamRoom.track = jamRoom.queue.shift();
+  jamProgress = 0;
+  renderJamRoom();
+  toast('⏭️', `Now playing "${jamRoom.track.name}"`);
+  startJamPlayback();
+}
+
+function jamReact(emoji) { floatIn(document.getElementById('jr-react-layer'), emoji); blip(); }
+
+function startJamSim() {
+  clearInterval(jamSimTimer);
+  const emojis = ['🔥', '❤️', '😍', '🎉', '🙌', '💯'];
+  jamSimTimer = setInterval(() => {
+    if (!document.getElementById('jam-modal').classList.contains('on')) { clearInterval(jamSimTimer); return; }
+    floatIn(document.getElementById('jr-react-layer'), emojis[Math.floor(Math.random() * emojis.length)]);
+  }, 1700);
+}
+
+function jamSearch(q) {
+  const t = q.trim().toLowerCase();
+  const box = document.getElementById('jr-results');
+  if (!t) { box.innerHTML = ''; jamSearchRes = []; return; }
+  jamSearchRes = SONGS.filter(s => s.name.toLowerCase().includes(t) || s.artist.toLowerCase().includes(t)).slice(0, 4);
+  box.innerHTML = jamSearchRes.map((s, i) => `
+    <div class="jr-result" onclick="jamAddToQueue(${i})">
+      <img src="${s.art}" onerror="this.style.display='none'"/>
+      <span class="n">${s.name} — ${s.artist}</span><span class="add">＋</span>
+    </div>`).join('');
+}
+function jamAddToQueue(i) {
+  const s = jamSearchRes[i];
+  if (!s || !jamRoom) return;
+  jamRoom.queue.push(s);
+  document.getElementById('jr-add').value = '';
+  document.getElementById('jr-results').innerHTML = '';
+  renderJamQueue();
+  toast('➕', `Added "${s.name}" to the Jam`);
+}
+
+function leaveJam() {
+  clearInterval(jamTimer); clearInterval(jamSimTimer);
+  closeModal('jam-modal');
+  jamRoom = null;
+  toast('👋', 'You left the Jam Room');
+}
 function startProg() {
   clearInterval(progTimer);
   progTimer = setInterval(() => {
@@ -1601,6 +1739,12 @@ const TOUR_STEPS = [
     placement: 'above',
   },
   {
+    target: '#sh-reactbar',
+    title: 'React to their song 🔥',
+    text: 'Fire off a quick <b>🔥 ❤️ 😍 🎉</b> reaction to whatever a friend is playing — it floats up on their song in the moment.',
+    placement: 'above',
+  },
+  {
     target: '.more-btn',
     title: 'Block anyone annoying 🚫',
     text: 'The <b>···</b> lets you block someone for 2 hours, a day, a week, or forever — they auto-unblock when the time\'s up.',
@@ -1625,6 +1769,12 @@ const TOUR_STEPS = [
     title: 'Player & controls 🎵',
     text: 'The bar at the bottom plays music for real (built-in preview), with play, skip, seek, like and volume — plus your headphone brand as the active device.',
     placement: 'above',
+  },
+  {
+    target: '.jam-cta',
+    title: 'Group Jam Rooms 🎉',
+    text: 'Start a <b>synced listening party</b> — invite a group, everyone hears the same song at once, drop tracks in a <b>shared queue</b>, and fire live reactions together.',
+    placement: 'right',
   },
   {
     target: '.add-friend-btn',
@@ -1767,7 +1917,7 @@ document.addEventListener('keydown', e => {
   if (e.code === 'Escape') {
     if (document.getElementById('tour').classList.contains('on')) { endTour(); return; }
     closeSheet();
-    ['blk-modal', 'lt-modal', 'af-modal', 'prof-modal', 'nc-modal', 'pp-modal', 'lb-modal', 'privacy-modal', 'req-modal'].forEach(closeModal);
+    ['blk-modal', 'lt-modal', 'af-modal', 'prof-modal', 'nc-modal', 'pp-modal', 'lb-modal', 'privacy-modal', 'req-modal', 'jam-create-modal'].forEach(closeModal);
   }
 });
 
